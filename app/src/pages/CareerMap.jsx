@@ -3,10 +3,10 @@ import { useState } from 'react'
 const STEP = ['Выбрать цель', 'Установить срок', 'Работать по плану', 'Запросить аттестацию']
 
 const JOB_FUNCTIONS = {
-  'Строительство': ['Прораб A', 'Прораб B', 'Прораб C', 'Начальник участка', 'Начальник отдела строительства'],
-  'Проектирование': ['Инженер-проектировщик', 'Главный инженер проекта', 'Архитектор'],
-  'Управление': ['Руководитель проекта', 'Директор по строительству', 'Технический директор'],
-  'Контроль качества': ['Специалист ОТК', 'Руководитель ОТК', 'Технический надзор'],
+  'Полевой состав': ['Foreman A', 'Foreman B', 'Foreman C'],
+  'Управление участком': ['Site Manager', 'Deputy Manager'],
+  'Управление проектом': ['Project Manager'],
+  'Высший менеджмент': ['Директор Управления', 'Генеральный Директор'],
 }
 
 export default function CareerMap() {
@@ -25,7 +25,7 @@ export default function CareerMap() {
         <span style={{ fontSize: 13, color: '#7a8fa0', fontWeight: 500 }}>Построить путь</span>
         <span style={{ fontSize: 13, color: '#9aafbd' }}>От</span>
         <div style={{ padding: '6px 12px', borderRadius: 7, background: '#f0f4ff', border: '1px solid #c7d2fe', fontSize: 13, color: '#4361ee', fontWeight: 500 }}>
-          Прораб C ✕
+          Foreman B ✕
         </div>
         <span style={{ fontSize: 13, color: '#9aafbd' }}>До</span>
         <div style={{ position: 'relative' }}>
@@ -94,12 +94,12 @@ export default function CareerMap() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <MapCard title="Прораб B" dept="BI Construction" grade="B" past />
+          <MapCard title="Foreman A" dept="BI Construction" grade="A" past />
           <Arrow />
-          <MapCard title="Прораб C" dept="BI Construction" grade="C" current date="Повышен 01 Янв 2024" />
+          <MapCard title="Foreman B" dept="BI Construction" grade="B" current date="Повышен 01 Янв 2024" />
           <Arrow />
           {to
-            ? <MapCard title={to} dept="BI Construction" grade="НУ" target deadline="06 Фев 2027" />
+            ? <MapCard title={to} dept="BI Construction" grade="→" target deadline="06 Фев 2027" />
             : <div style={{ width: 200, height: 100, border: '2px dashed #d0d7e5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aafbd', fontSize: 13 }}>Выберите цель →</div>
           }
         </div>

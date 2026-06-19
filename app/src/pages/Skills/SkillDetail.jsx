@@ -58,7 +58,7 @@ export default function SkillDetail({ skill, onBack }) {
         </div>
       </div>
 
-      <div style={{ padding: '24px 32px', maxWidth: 1200 }}>
+      <div style={{ padding: '24px 32px' }}>
         <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923', marginBottom: 10 }}>Описание навыка</div>
           <p style={{ fontSize: 13, color: '#4a6275', lineHeight: 1.6, marginBottom: 10 }}>

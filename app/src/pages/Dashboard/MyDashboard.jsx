@@ -1,17 +1,17 @@
 const plans = [
   {
-    id: 1, title: 'Стать Начальником участка',
-    from: 'Прораб C', to: 'Начальник участка', dept: 'BI Construction',
+    id: 1, title: 'Стать Foreman C',
+    from: 'Foreman B', to: 'Foreman C', dept: 'BI Construction',
     progress: 15, total: 21, deadline: '06 Фев 2027', icon: '🎯',
   },
   {
     id: 2, title: 'План развития на основе оценки',
-    from: 'Прораб C', dept: 'BI Construction',
+    from: 'Foreman B', dept: 'BI Construction',
     noData: true, icon: '⚙️',
   },
   {
     id: 3, title: 'Предыдущий карьерный план',
-    from: 'Прораб B', dept: 'BI Construction',
+    from: 'Foreman A', dept: 'BI Construction',
     progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, icon: '📋',
   },
 ]
@@ -24,13 +24,13 @@ const pendingSkills = [
 ]
 
 const notifications = [
-  { text: 'Готовы ли вы к повышению до Начальника участка?', time: '2 дня назад', type: 'promo' },
-  { text: 'Аттестация: Прораб C. Результаты обработаны.', time: '4 дня назад', type: 'assess' },
+  { text: 'Готовы ли вы к повышению до Foreman C?', time: '2 дня назад', type: 'promo' },
+  { text: 'Аттестация: Foreman B. Результаты обработаны.', time: '4 дня назад', type: 'assess' },
 ]
 
 export default function MyDashboard() {
   return (
-    <div style={{ padding: '28px 32px', maxWidth: 1400 }}>
+    <div style={{ padding: '28px 32px' }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>
           Добро пожаловать, <span style={{ color: '#1a2b3c' }}>Каиржан!</span>
@@ -50,7 +50,7 @@ export default function MyDashboard() {
               }}>КБ</div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923' }}>Каиржан Бектембаев</div>
-                <div style={{ fontSize: 12, color: '#7a8fa0' }}>Прораб C</div>
+                <div style={{ fontSize: 12, color: '#7a8fa0' }}>Foreman B</div>
                 <div style={{ fontSize: 12, color: '#7a8fa0' }}>BI Construction</div>
               </div>
             </div>

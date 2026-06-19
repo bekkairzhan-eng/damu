@@ -160,7 +160,7 @@ function EligibilityTab() {
     <div>
       <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: 16, color: '#0f1923', marginBottom: 4 }}>
-          Текущий статус готовности к оценке: Начальник участка
+          Текущий статус готовности к оценке: Foreman C
         </div>
         <div style={{ fontSize: 13, color: '#7a8fa0', marginBottom: 16 }}>BI Construction</div>
 

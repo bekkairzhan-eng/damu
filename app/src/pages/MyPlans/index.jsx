@@ -2,9 +2,9 @@ import { useState } from 'react'
 import CareerPlanDetail from './CareerPlanDetail'
 
 const recPlans = [
-  { id: 1, title: 'Стать Начальником участка', from: 'Прораб C', dept: 'BI Construction', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true },
-  { id: 2, title: 'План развития на основе оценки', from: 'Прораб C', dept: 'BI Construction', noData: true },
-  { id: 3, title: 'Предыдущий карьерный план', from: 'Прораб B', dept: 'BI Construction', progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, pinned: true },
+  { id: 1, title: 'Стать Foreman C', from: 'Foreman B', dept: 'BI Construction', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true },
+  { id: 2, title: 'План развития на основе оценки', from: 'Foreman B', dept: 'BI Construction', noData: true },
+  { id: 3, title: 'Предыдущий карьерный план', from: 'Foreman A', dept: 'BI Construction', progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, pinned: true },
 ]
 
 const PLAN_TYPES = ['Обратная связь', 'Наставничество', 'Проект', 'Адаптация', 'Вклад в команду', 'OKR', 'KPI', 'Вектор навыков']
@@ -16,12 +16,12 @@ export default function MyPlans() {
   if (selectedPlan) return <CareerPlanDetail plan={selectedPlan} onBack={() => setSelectedPlan(null)} />
 
   return (
-    <div style={{ padding: '28px 32px', maxWidth: 1200 }}>
+    <div style={{ padding: '28px 32px' }}>
       <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Мои планы</h1>
       <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 28 }}>Станьте профессионалом, которым вы всегда хотели быть</p>
 
       <Section title="Рекомендовано для роста" subtitle="Планы, рекомендованные вам для дальнейшего развития">
-        <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           {recPlans.map(plan => (
             <PlanCard key={plan.id} plan={plan} onClick={() => setSelectedPlan(plan)} />
           ))}
@@ -82,7 +82,7 @@ function PlanCard({ plan, onClick }) {
   const pct = plan.noData ? 0 : Math.round((plan.progress / plan.total) * 100)
   return (
     <div onClick={onClick} style={{
-      width: 240, border: '1px solid #e8edf2', borderRadius: 12, padding: 16,
+      minWidth: 220, flex: 1, maxWidth: 300, border: '1px solid #e8edf2', borderRadius: 12, padding: 16,
       background: '#fff', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
       transition: 'box-shadow 0.15s',
     }}>

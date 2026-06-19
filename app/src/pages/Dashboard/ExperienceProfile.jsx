@@ -15,7 +15,7 @@ const industryExp = [
 
 export default function ExperienceProfile() {
   return (
-    <div style={{ padding: '24px 32px', maxWidth: 1200 }}>
+    <div style={{ padding: '24px 32px' }}>
       <div style={{ background: '#f8f9fc', border: '1px solid #e0e6ef', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#4a6275' }}>
         📊 Профиль опыта объединяет данные о вашей производственной деятельности, участии в корпоративных инициативах и программах BI Group.
       </div>
@@ -25,12 +25,12 @@ export default function ExperienceProfile() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <InfoRow label="Стаж работы в BI Group" value="4 года 11 месяцев" />
             <InfoRow label="Опыт на текущей должности" value="2 года 6 месяцев" />
-            <InfoRow label="Подтверждённый уровень казахского" value={<span>C1 <span style={{ fontSize: 11, color: '#7a8fa0' }}>· Подтверждён 12 Мар 2024</span></span>} />
+            <InfoRow label="Подтверждённый уровень казахского" value={<span>B2 <span style={{ fontSize: 11, color: '#7a8fa0' }}>· Подтверждён 12 Мар 2024</span></span>} />
             <InfoRow label="Рейтинг профиля сотрудника" value={<span style={{ fontWeight: 700, color: '#4361ee' }}>#3 (4.1)</span>} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <RoleCard role="Прораб C" dept="BI Construction" date="01 Янв 2024" current />
-            <RoleCard role="Прораб B" dept="BI Construction" date="17 Июл 2021" />
+            <RoleCard role="Foreman B" dept="BI Construction" date="01 Янв 2024" current />
+            <RoleCard role="Foreman A" dept="BI Construction" date="17 Июл 2021" />
           </div>
         </div>
       </Section>

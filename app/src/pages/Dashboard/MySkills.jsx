@@ -48,7 +48,7 @@ export default function MySkills() {
   }
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: 1200 }}>
+    <div style={{ padding: '24px 32px' }}>
       <div style={{ background: '#f0f4ff', border: '1px solid #c7d2fe', borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#3730a3' }}>
         <span>✅</span>
         <span>Ваш профиль навыков актуален. Актуальный профиль помогает получать релевантный контент.</span>

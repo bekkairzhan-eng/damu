@@ -1,10 +1,15 @@
 import { useState } from 'react'
 
 const LEVELS = [
-  { grade: 'A', title: 'Прораб A' },
-  { grade: 'B', title: 'Прораб B' },
-  { grade: 'C', title: 'Прораб C', current: true },
-  { grade: 'НУ', title: 'Начальник участка', target: true },
+  { grade: 'A', title: 'Foreman A' },
+  { grade: 'B', title: 'Foreman B', current: true },
+  { grade: 'C', title: 'Foreman C', target: true },
+  { grade: 'SM', title: 'Site Manager' },
+]
+
+const FULL_LADDER = [
+  'Foreman A', 'Foreman B', 'Foreman C', 'Site Manager',
+  'Deputy Manager', 'Project Manager', 'Директор Управления', 'Генеральный Директор',
 ]
 
 const GEN_REQS = [
@@ -49,11 +54,11 @@ const SKILL_REQS = [
   { cat: 'Управление и лидерство', name: 'Управление субподрядчиками', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
   { cat: 'Управление и лидерство', name: 'Финансовый контроль проекта', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
   { cat: 'Управление и лидерство', name: 'Управление командой', levels: ['Базовый', 'Базовый', 'Средний', 'Средний'] },
-  { cat: 'Языки', name: 'Казахский', levels: [null, null, 'B2', 'B2'] },
+  { cat: 'Языки', name: 'Казахский', levels: ['B1', 'B1', 'B2', 'B2'] },
 ]
 
-const LEVEL_COLOR = { 'Базовый': '#e0e6ef', 'Средний': '#4361ee', 'Продвинутый': '#22c55e', 'Эксперт': '#f59e0b', 'B2': '#8b5cf6' }
-const LEVEL_TEXT = { 'Базовый': '#4a6275', 'Средний': '#fff', 'Продвинутый': '#fff', 'Эксперт': '#fff', 'B2': '#fff' }
+const LEVEL_COLOR = { 'Базовый': '#e0e6ef', 'Средний': '#4361ee', 'Продвинутый': '#22c55e', 'Эксперт': '#f59e0b', 'B1': '#c4b5fd', 'B2': '#8b5cf6' }
+const LEVEL_TEXT = { 'Базовый': '#4a6275', 'Средний': '#fff', 'Продвинутый': '#fff', 'Эксперт': '#fff', 'B1': '#fff', 'B2': '#fff' }
 
 export default function Titles() {
   const [tab, setTab] = useState('Общие требования')
@@ -73,11 +78,35 @@ export default function Titles() {
         </div>
       </div>
 
+      {/* Полная карьерная лестница */}
+      <div style={{ background: '#fff', borderRadius: 12, padding: '14px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto' }}>
+        {FULL_LADDER.map((title, i) => {
+          const isCurrent = title === 'Foreman B'
+          const isTarget = title === 'Foreman C'
+          return (
+            <div key={title} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{
+                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: isCurrent || isTarget ? 700 : 400,
+                background: isCurrent ? '#4361ee' : isTarget ? '#f0fff4' : '#f8f9fc',
+                color: isCurrent ? '#fff' : isTarget ? '#16a34a' : '#4a6275',
+                border: isTarget ? '1.5px solid #22c55e' : isCurrent ? 'none' : '1px solid #e8edf2',
+                whiteSpace: 'nowrap',
+              }}>
+                {isCurrent && '📍 '}{isTarget && '🎯 '}{title}
+              </div>
+              {i < FULL_LADDER.length - 1 && (
+                <div style={{ width: 28, height: 2, background: i < 1 ? '#4361ee' : '#e0e6ef', flexShrink: 0 }} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
       <div style={{ background: '#fff', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 12, color: '#4a6275' }}>Все должности</div>
         <input placeholder="🔍 Поиск по функциям или должностям" style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, flex: 1, outline: 'none' }} />
         <div style={{ padding: '5px 12px', borderRadius: 7, background: '#f0f4ff', border: '1px solid #c7d2fe', fontSize: 12, color: '#4361ee', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Функция: Строительство ✕
+          Функция: Полевой состав ✕
         </div>
         <div style={{ padding: '5px 12px', borderRadius: 7, background: '#f0f4ff', border: '1px solid #c7d2fe', fontSize: 12, color: '#4361ee', display: 'flex', alignItems: 'center', gap: 6 }}>
           Отдел: BI Construction ✕
@@ -90,7 +119,7 @@ export default function Titles() {
           {LEVELS.map((l, i) => (
             <div key={l.title} style={{ padding: '14px 12px', borderLeft: '1px solid #f0f2f8', background: l.current ? '#f0f4ff' : l.target ? '#f0fff4' : 'transparent' }}>
               <div style={{ fontSize: 10, color: '#9aafbd', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
-                {l.current ? 'ВЫ ЗДЕСЬ' : l.target ? 'ВАША ЦЕЛЬ' : `УРОВЕНЬ ${i + 1}`}
+                {l.current ? 'ВЫ ЗДЕСЬ' : l.target ? 'СЛЕДУЮЩАЯ ЦЕЛЬ' : `УРОВЕНЬ ${i + 1}`}
               </div>
               <div style={{ fontWeight: 700, fontSize: 13, color: l.current ? '#4361ee' : l.target ? '#16a34a' : '#0f1923' }}>{l.title}</div>
               <div style={{ fontSize: 11, color: '#9aafbd', marginTop: 2 }}>Грейд {l.grade}</div>
