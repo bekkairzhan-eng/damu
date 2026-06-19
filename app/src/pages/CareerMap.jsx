@@ -94,12 +94,12 @@ export default function CareerMap() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-          <MapCard title="Foreman A" dept="BI Construction" grade="A" past />
+          <MapCard title="Foreman A" dept="BI Development" grade="A" past />
           <Arrow />
-          <MapCard title="Foreman B" dept="BI Construction" grade="B" current date="Повышен 01 Янв 2024" />
+          <MapCard title="Foreman B" dept="BI Development" grade="B" current date="Повышен 01 Янв 2024" />
           <Arrow />
           {to
-            ? <MapCard title={to} dept="BI Construction" grade="→" target deadline="06 Фев 2027" />
+            ? <MapCard title={to} dept="BI Development" grade="→" target deadline="06 Фев 2027" />
             : <div style={{ width: 200, height: 100, border: '2px dashed #d0d7e5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aafbd', fontSize: 13 }}>Выберите цель →</div>
           }
         </div>

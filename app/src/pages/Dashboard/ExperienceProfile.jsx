@@ -29,8 +29,8 @@ export default function ExperienceProfile() {
             <InfoRow label="Рейтинг профиля сотрудника" value={<span style={{ fontWeight: 700, color: '#4361ee' }}>#3 (4.1)</span>} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <RoleCard role="Foreman B" dept="BI Construction" date="01 Янв 2024" current />
-            <RoleCard role="Foreman A" dept="BI Construction" date="17 Июл 2021" />
+            <RoleCard role="Foreman B" dept="BI Development" date="01 Янв 2024" current />
+            <RoleCard role="Foreman A" dept="BI Development" date="17 Июл 2021" />
           </div>
         </div>
       </Section>

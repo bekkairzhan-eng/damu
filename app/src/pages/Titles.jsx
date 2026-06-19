@@ -109,7 +109,7 @@ export default function Titles() {
           Функция: Полевой состав ✕
         </div>
         <div style={{ padding: '5px 12px', borderRadius: 7, background: '#f0f4ff', border: '1px solid #c7d2fe', fontSize: 12, color: '#4361ee', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Отдел: BI Construction ✕
+          Отдел: BI Development ✕
         </div>
       </div>
 

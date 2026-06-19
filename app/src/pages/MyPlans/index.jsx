@@ -2,9 +2,9 @@ import { useState } from 'react'
 import CareerPlanDetail from './CareerPlanDetail'
 
 const recPlans = [
-  { id: 1, title: 'Стать Foreman C', from: 'Foreman B', dept: 'BI Construction', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true },
-  { id: 2, title: 'План развития на основе оценки', from: 'Foreman B', dept: 'BI Construction', noData: true },
-  { id: 3, title: 'Предыдущий карьерный план', from: 'Foreman A', dept: 'BI Construction', progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, pinned: true },
+  { id: 1, title: 'Стать Foreman C', from: 'Foreman B', dept: 'BI Development', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true },
+  { id: 2, title: 'План развития на основе оценки', from: 'Foreman B', dept: 'BI Development', noData: true },
+  { id: 3, title: 'Предыдущий карьерный план', from: 'Foreman A', dept: 'BI Development', progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, pinned: true },
 ]
 
 const PLAN_TYPES = ['Обратная связь', 'Наставничество', 'Проект', 'Адаптация', 'Вклад в команду', 'OKR', 'KPI', 'Вектор навыков']

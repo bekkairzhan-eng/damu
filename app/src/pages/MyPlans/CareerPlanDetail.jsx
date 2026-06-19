@@ -162,7 +162,7 @@ function EligibilityTab() {
         <div style={{ fontWeight: 700, fontSize: 16, color: '#0f1923', marginBottom: 4 }}>
           Текущий статус готовности к оценке: Foreman C
         </div>
-        <div style={{ fontSize: 13, color: '#7a8fa0', marginBottom: 16 }}>BI Construction</div>
+        <div style={{ fontSize: 13, color: '#7a8fa0', marginBottom: 16 }}>BI Development</div>
 
         <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#1e40af', marginBottom: 20 }}>
           ℹ️ Показатели готовности к аттестации обновляются автоматически. Синхронизация может занять до 48 часов.

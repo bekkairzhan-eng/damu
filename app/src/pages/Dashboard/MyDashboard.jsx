@@ -1,17 +1,17 @@
 const plans = [
   {
     id: 1, title: 'Стать Foreman C',
-    from: 'Foreman B', to: 'Foreman C', dept: 'BI Construction',
+    from: 'Foreman B', to: 'Foreman C', dept: 'BI Development',
     progress: 15, total: 21, deadline: '06 Фев 2027', icon: '🎯',
   },
   {
     id: 2, title: 'План развития на основе оценки',
-    from: 'Foreman B', dept: 'BI Construction',
+    from: 'Foreman B', dept: 'BI Development',
     noData: true, icon: '⚙️',
   },
   {
     id: 3, title: 'Предыдущий карьерный план',
-    from: 'Foreman A', dept: 'BI Construction',
+    from: 'Foreman A', dept: 'BI Development',
     progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, icon: '📋',
   },
 ]
@@ -49,7 +49,7 @@ export default function MyDashboard() {
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923' }}>Каиржан Бектембаев</div>
                 <div style={{ fontSize: 12, color: '#7a8fa0' }}>Foreman B</div>
-                <div style={{ fontSize: 12, color: '#7a8fa0' }}>BI Construction</div>
+                <div style={{ fontSize: 12, color: '#7a8fa0' }}>BI Development</div>
               </div>
             </div>
             <div style={{ fontSize: 12, color: '#9aafbd', marginBottom: 4 }}>В BI Group с 17 Июл 2021</div>
