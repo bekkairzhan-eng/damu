@@ -267,13 +267,9 @@ export default function TopNav() {
         </button>
 
         {/* Аватар */}
-        <div style={{
-          width: 34, height: 34, borderRadius: '50%', marginLeft: 6,
-          background: 'linear-gradient(135deg, #4ade80, #22c55e)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-          border: '2px solid #2a4a5a',
-        }}>КБ</div>
+        <img src="/avatar1.jpeg" alt="Каиржан Бектембаев"
+          style={{ width: 34, height: 34, borderRadius: '50%', marginLeft: 6, objectFit: 'cover', cursor: 'pointer', border: '2px solid #4ade80', flexShrink: 0 }}
+        />
       </div>
     </header>
   )

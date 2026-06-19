@@ -43,11 +43,9 @@ export default function MyDashboard() {
         <div>
           <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: '50%', background: '#4361ee',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontWeight: 700, fontSize: 18, flexShrink: 0,
-              }}>КБ</div>
+              <img src="/avatar1.jpeg" alt="Каиржан Бектембаев"
+                style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #c7d2fe' }}
+              />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923' }}>Каиржан Бектембаев</div>
                 <div style={{ fontSize: 12, color: '#7a8fa0' }}>Foreman B</div>
