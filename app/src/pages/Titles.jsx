@@ -57,6 +57,18 @@ const SKILL_REQS = [
   { cat: 'Языки', name: 'Казахский', levels: ['B1', 'B1', 'B2', 'B2'] },
 ]
 
+const KB_BASE = 'https://kb.bi.group'
+const KB_LINKS = {
+  'Foreman A':           `${KB_BASE}/foreman-a`,
+  'Foreman B':           `${KB_BASE}/foreman-b`,
+  'Foreman C':           `${KB_BASE}/foreman-c`,
+  'Site Manager':        `${KB_BASE}/site-manager`,
+  'Deputy Manager':      `${KB_BASE}/deputy-manager`,
+  'Project Manager':     `${KB_BASE}/project-manager`,
+  'Директор Управления': `${KB_BASE}/director`,
+  'Генеральный Директор':`${KB_BASE}/ceo`,
+}
+
 const LEVEL_COLOR = { 'Базовый': '#e0e6ef', 'Средний': '#4361ee', 'Продвинутый': '#22c55e', 'Эксперт': '#f59e0b', 'B1': '#c4b5fd', 'B2': '#8b5cf6' }
 const LEVEL_TEXT = { 'Базовый': '#4a6275', 'Средний': '#fff', 'Продвинутый': '#fff', 'Эксперт': '#fff', 'B1': '#fff', 'B2': '#fff' }
 
@@ -85,14 +97,22 @@ export default function Titles() {
           const isTarget = title === 'Foreman C'
           return (
             <div key={title} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{
-                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: isCurrent || isTarget ? 700 : 400,
-                background: isCurrent ? '#4361ee' : isTarget ? '#f0fff4' : '#f8f9fc',
-                color: isCurrent ? '#fff' : isTarget ? '#16a34a' : '#4a6275',
-                border: isTarget ? '1.5px solid #22c55e' : isCurrent ? 'none' : '1px solid #e8edf2',
-                whiteSpace: 'nowrap',
-              }}>
-                {isCurrent && '📍 '}{isTarget && '🎯 '}{title}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{
+                  padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: isCurrent || isTarget ? 700 : 400,
+                  background: isCurrent ? '#4361ee' : isTarget ? '#f0fff4' : '#f8f9fc',
+                  color: isCurrent ? '#fff' : isTarget ? '#16a34a' : '#4a6275',
+                  border: isTarget ? '1.5px solid #22c55e' : isCurrent ? 'none' : '1px solid #e8edf2',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {isCurrent && '📍 '}{isTarget && '🎯 '}{title}
+                </div>
+                {KB_LINKS[title] && (
+                  <a href={KB_LINKS[title]} target="_blank" rel="noreferrer"
+                    style={{ fontSize: 10, color: isCurrent ? '#4361ee' : isTarget ? '#16a34a' : '#9aafbd', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                    📖 KB
+                  </a>
+                )}
               </div>
               {i < FULL_LADDER.length - 1 && (
                 <div style={{ width: 28, height: 2, background: i < 1 ? '#4361ee' : '#e0e6ef', flexShrink: 0 }} />
@@ -123,6 +143,12 @@ export default function Titles() {
               </div>
               <div style={{ fontWeight: 700, fontSize: 13, color: l.current ? '#4361ee' : l.target ? '#16a34a' : '#0f1923' }}>{l.title}</div>
               <div style={{ fontSize: 11, color: '#9aafbd', marginTop: 2 }}>Грейд {l.grade}</div>
+              {KB_LINKS[l.title] && (
+                <a href={KB_LINKS[l.title]} target="_blank" rel="noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, fontSize: 11, color: l.current ? '#4361ee' : l.target ? '#16a34a' : '#7a8fa0', textDecoration: 'none', background: l.current ? '#e8edff' : l.target ? '#dcfce7' : '#f0f2f8', padding: '3px 8px', borderRadius: 6 }}>
+                  📖 Читать в базе знаний
+                </a>
+              )}
             </div>
           ))}
         </div>

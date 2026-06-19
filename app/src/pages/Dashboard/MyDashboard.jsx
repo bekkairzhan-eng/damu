@@ -28,7 +28,10 @@ const notifications = [
   { text: 'Аттестация: Foreman B. Результаты обработаны.', time: '4 дня назад', type: 'assess' },
 ]
 
+import { useNavigate } from 'react-router-dom'
+
 export default function MyDashboard() {
+  const navigate = useNavigate()
   return (
     <div style={{ padding: '28px 32px' }}>
       <div style={{ marginBottom: 24 }}>
@@ -54,15 +57,15 @@ export default function MyDashboard() {
             </div>
             <div style={{ fontSize: 12, color: '#9aafbd', marginBottom: 4 }}>В BI Group с 17 Июл 2021</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <Chip label="Мои навыки" />
-              <Chip label="Ключевые компетенции" />
+              <Chip label="Мои навыки" onClick={() => navigate('/dashboard/my-skills')} />
+              <Chip label="Ключевые компетенции" onClick={() => navigate('/skills')} />
             </div>
           </div>
 
           <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#7a8fa0', marginBottom: 12 }}>Рейтинг профиля</div>
             <ScoreGauge score={4.1} />
-            <a href="#" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#4361ee', marginTop: 8 }}>Подробнее →</a>
+            <a href="/dashboard/experience" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#4361ee', marginTop: 8 }}>Подробнее →</a>
           </div>
         </div>
 
@@ -71,10 +74,10 @@ export default function MyDashboard() {
           <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923' }}>Направления в фокусе</div>
-              <a href="/plans" style={{ fontSize: 12, color: '#4361ee' }}>Все планы →</a>
+              <button onClick={() => navigate('/plans')} style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Все планы →</button>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
-              {plans.map(plan => <PlanCard key={plan.id} plan={plan} />)}
+              {plans.map(plan => <PlanCard key={plan.id} plan={plan} onClick={() => navigate('/plans', { state: { planId: plan.id } })} />)}
             </div>
           </div>
 
@@ -116,10 +119,13 @@ export default function MyDashboard() {
   )
 }
 
-function PlanCard({ plan }) {
+function PlanCard({ plan, onClick }) {
   const pct = plan.noData ? 0 : Math.round((plan.progress / plan.total) * 100)
   return (
-    <div style={{ flex: 1, border: '1px solid #e8edf2', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div onClick={onClick} style={{ flex: 1, border: '1px solid #e8edf2', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', transition: 'box-shadow 0.15s' }}
+      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(67,97,238,0.15)'}
+      onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+    >
       <div style={{ fontSize: 11, color: '#9aafbd' }}>{plan.dept}</div>
       <div style={{ fontWeight: 600, fontSize: 13, color: '#0f1923', lineHeight: 1.3 }}>{plan.icon} {plan.title}</div>
       {plan.noData ? (
@@ -142,8 +148,8 @@ function PlanCard({ plan }) {
   )
 }
 
-function Chip({ label }) {
-  return <span style={{ padding: '4px 10px', borderRadius: 20, background: '#f0f2f8', fontSize: 11, color: '#4a6275', cursor: 'pointer' }}>{label}</span>
+function Chip({ label, onClick }) {
+  return <span onClick={onClick} style={{ padding: '4px 10px', borderRadius: 20, background: '#f0f2f8', fontSize: 11, color: '#4a6275', cursor: onClick ? 'pointer' : 'default' }}>{label}</span>
 }
 
 function LevelDots({ level }) {

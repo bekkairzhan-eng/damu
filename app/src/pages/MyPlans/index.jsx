@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import CareerPlanDetail from './CareerPlanDetail'
 
 const recPlans = [
@@ -12,6 +13,14 @@ const PLAN_TYPES = ['Обратная связь', 'Наставничество
 export default function MyPlans() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.planId) {
+      const plan = recPlans.find(p => p.id === location.state.planId)
+      if (plan) setSelectedPlan(plan)
+    }
+  }, [])
 
   if (selectedPlan) return <CareerPlanDetail plan={selectedPlan} onBack={() => setSelectedPlan(null)} />
 
