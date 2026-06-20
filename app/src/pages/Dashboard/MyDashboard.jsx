@@ -34,9 +34,11 @@ const notifications = [
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useProfile } from '../../ProfileContext'
 
 export default function MyDashboard() {
   const navigate = useNavigate()
+  const { overallScore } = useProfile()
   const [pending, setPending] = useState(INITIAL_PENDING)
   const [confirmed, setConfirmed] = useState([])
 
@@ -80,7 +82,7 @@ export default function MyDashboard() {
 
           <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#7a8fa0', marginBottom: 12 }}>Рейтинг профиля</div>
-            <ScoreGauge score={4.1} />
+            <ScoreGauge score={overallScore} />
             <a href="/dashboard/experience" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#4361ee', marginTop: 8 }}>Подробнее →</a>
           </div>
         </div>

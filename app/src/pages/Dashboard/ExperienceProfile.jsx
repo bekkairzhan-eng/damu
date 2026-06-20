@@ -101,8 +101,9 @@ const workHistory = [
   { role: 'Foreman A', org: 'BI Development', from: '17.07.2021', to: '31.12.2023', tenure: '2 г 5 мес' },
 ]
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useProfile } from '../../ProfileContext'
 
 const CERT_TYPES = ['Сертификат', 'Удостоверение', 'Диплом', 'Свидетельство']
 const PROJECT_TYPES = ['Жилой комплекс', 'Коммерческая недвижимость', 'Инфраструктура', 'Промышленный объект', 'Социальный объект', 'Другое']
@@ -141,6 +142,7 @@ export default function ExperienceProfile() {
   const [enrollForm, setEnrollForm] = useState({ date: '', comment: '' })
   const [enrollSent, setEnrollSent] = useState(false)
   const navigate = useNavigate()
+  const { setOverallScore } = useProfile()
 
   function openEnroll(cert) {
     setEnrollCert(cert)
@@ -197,6 +199,8 @@ export default function ExperienceProfile() {
       return sum + s * c.weight
     }, 0) / 100).toFixed(1)
   )
+
+  useEffect(() => { setOverallScore(overallScore) }, [overallScore])
 
   return (
     <div style={{ padding: '24px 32px' }}>

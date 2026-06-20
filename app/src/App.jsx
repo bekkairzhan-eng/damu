@@ -5,9 +5,11 @@ import MyPlans from './pages/MyPlans/index'
 import CareerMap from './pages/CareerMap'
 import Titles from './pages/Titles'
 import Skills from './pages/Skills/index'
+import { ProfileProvider } from './ProfileContext'
 
 export default function App() {
   return (
+    <ProfileProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -20,5 +22,6 @@ export default function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ProfileProvider>
   )
 }
