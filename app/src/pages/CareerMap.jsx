@@ -2,11 +2,13 @@ import { useState } from 'react'
 
 const STEP = ['Выбрать цель', 'Установить срок', 'Работать по плану', 'Запросить аттестацию']
 
+const CURRENT_POSITION = 'Foreman B'
+const PAST_POSITIONS = new Set(['Foreman A', 'Foreman B'])
+
 const JOB_FUNCTIONS = {
   'Полевой состав': ['Foreman A', 'Foreman B', 'Foreman C'],
-  'Управление участком': ['Site Manager', 'Deputy Manager'],
+  'Управление участком': ['Site Manager', 'Deputy Project Manager'],
   'Управление проектом': ['Project Manager'],
-  'Высший менеджмент': ['Директор Управления', 'Генеральный Директор'],
 }
 
 export default function CareerMap() {
@@ -17,7 +19,7 @@ export default function CareerMap() {
 
   return (
     <div style={{ padding: '28px 32px' }}>
-      <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Карьерная карта</h1>
+      <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Карьерный трек</h1>
       <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 20 }}>Постройте путь к карьерной цели и скорректируйте его при необходимости</p>
 
       <div style={{ background: '#fff', borderRadius: 12, padding: '14px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
@@ -42,12 +44,19 @@ export default function CareerMap() {
               {Object.entries(JOB_FUNCTIONS).map(([fn, titles]) => (
                 <div key={fn}>
                   <div style={{ padding: '8px 14px 4px', fontSize: 11, fontWeight: 700, color: '#9aafbd', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{fn}</div>
-                  {titles.map(t => (
-                    <div key={t} onMouseDown={() => { setTo(t); setShowDropdown(false) }} style={{ padding: '8px 14px', fontSize: 13, color: '#1a2b3c', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 26, height: 26, borderRadius: 6, background: '#4361ee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>А</div>
-                      <span>{t}</span>
-                    </div>
-                  ))}
+                  {titles.map(t => {
+                    const isPast = PAST_POSITIONS.has(t)
+                    return (
+                      <div key={t}
+                        onMouseDown={isPast ? undefined : () => { setTo(t); setShowDropdown(false) }}
+                        style={{ padding: '8px 14px', fontSize: 13, color: isPast ? '#c0ccd8' : '#1a2b3c', cursor: isPast ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 10, background: isPast ? '#fafafa' : 'transparent' }}
+                      >
+                        <div style={{ width: 26, height: 26, borderRadius: 6, background: isPast ? '#e0e6ef' : '#4361ee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isPast ? '#9aafbd' : '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>А</div>
+                        <span style={{ flex: 1 }}>{t}</span>
+                        {isPast && <span style={{ fontSize: 10, color: '#9aafbd', background: '#f0f2f8', padding: '1px 6px', borderRadius: 4 }}>Пройдено</span>}
+                      </div>
+                    )
+                  })}
                 </div>
               ))}
             </div>

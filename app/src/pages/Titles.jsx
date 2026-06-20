@@ -9,7 +9,7 @@ const LEVELS = [
 
 const FULL_LADDER = [
   'Foreman A', 'Foreman B', 'Foreman C', 'Site Manager',
-  'Deputy Manager', 'Project Manager', 'Директор Управления', 'Генеральный Директор',
+  'Deputy Project Manager', 'Project Manager',
 ]
 
 const GEN_REQS = [
@@ -63,10 +63,8 @@ const KB_LINKS = {
   'Foreman B':           `${KB_BASE}/foreman-b`,
   'Foreman C':           `${KB_BASE}/foreman-c`,
   'Site Manager':        `${KB_BASE}/site-manager`,
-  'Deputy Manager':      `${KB_BASE}/deputy-manager`,
-  'Project Manager':     `${KB_BASE}/project-manager`,
-  'Директор Управления': `${KB_BASE}/director`,
-  'Генеральный Директор':`${KB_BASE}/ceo`,
+  'Deputy Project Manager': `${KB_BASE}/deputy-project-manager`,
+  'Project Manager':        `${KB_BASE}/project-manager`,
 }
 
 const LEVEL_COLOR = { 'Базовый': '#e0e6ef', 'Средний': '#4361ee', 'Продвинутый': '#22c55e', 'Эксперт': '#f59e0b', 'B1': '#c4b5fd', 'B2': '#8b5cf6' }
@@ -86,18 +84,18 @@ export default function Titles() {
           <p style={{ fontSize: 14, color: '#7a8fa0' }}>Изучите все должности и карьерные пути в компании</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <a href="/career-map" style={{ fontSize: 12, color: '#4361ee' }}>Посмотреть карьерные пути на карте →</a>
+          <a href="/career-map" style={{ fontSize: 12, color: '#4361ee' }}>Посмотреть в Карьерном треке →</a>
         </div>
       </div>
 
       {/* Полная карьерная лестница */}
-      <div style={{ background: '#fff', borderRadius: 12, padding: '14px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto' }}>
+      <div style={{ background: '#fff', borderRadius: 12, padding: '14px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', alignItems: 'center' }}>
         {FULL_LADDER.map((title, i) => {
           const isCurrent = title === 'Foreman B'
           const isTarget = title === 'Foreman C'
           return (
-            <div key={title} style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div key={title} style={{ display: 'flex', alignItems: 'center', flex: i < FULL_LADDER.length - 1 ? '1' : '0 0 auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                 <div style={{
                   padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: isCurrent || isTarget ? 700 : 400,
                   background: isCurrent ? '#4361ee' : isTarget ? '#f0fff4' : '#f8f9fc',
@@ -105,17 +103,18 @@ export default function Titles() {
                   border: isTarget ? '1.5px solid #22c55e' : isCurrent ? 'none' : '1px solid #e8edf2',
                   whiteSpace: 'nowrap',
                 }}>
-                  {isCurrent && '📍 '}{isTarget && '🎯 '}{title}
+                  {isCurrent && <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: 'middle', marginRight: 3 }}>person_pin</span>}
+                  {title}
                 </div>
                 {KB_LINKS[title] && (
                   <a href={KB_LINKS[title]} target="_blank" rel="noreferrer"
-                    style={{ fontSize: 10, color: isCurrent ? '#4361ee' : isTarget ? '#16a34a' : '#9aafbd', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                    📖 KB
+                    style={{ fontSize: 10, color: isCurrent ? '#4361ee' : isTarget ? '#16a34a' : '#9aafbd', textDecoration: 'none', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 11 }}>menu_book</span> Читать
                   </a>
                 )}
               </div>
               {i < FULL_LADDER.length - 1 && (
-                <div style={{ width: 28, height: 2, background: i < 1 ? '#4361ee' : '#e0e6ef', flexShrink: 0 }} />
+                <div style={{ flex: 1, height: 2, background: i < 1 ? '#4361ee' : '#e0e6ef', minWidth: 12 }} />
               )}
             </div>
           )
@@ -146,21 +145,31 @@ export default function Titles() {
               {KB_LINKS[l.title] && (
                 <a href={KB_LINKS[l.title]} target="_blank" rel="noreferrer"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, fontSize: 11, color: l.current ? '#4361ee' : l.target ? '#16a34a' : '#7a8fa0', textDecoration: 'none', background: l.current ? '#e8edff' : l.target ? '#dcfce7' : '#f0f2f8', padding: '3px 8px', borderRadius: 6 }}>
-                  📖 Читать в базе знаний
+                  <span className="material-symbols-outlined" style={{ fontSize: 13 }}>menu_book</span> Читать в Базе Знаний
                 </a>
               )}
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: 0, padding: '0 16px', borderBottom: '1px solid #f0f2f8' }}>
-          {['Общие требования', 'Требования к навыкам'].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              padding: '12px 20px', background: 'none', border: 'none',
-              borderBottom: tab === t ? '2.5px solid #0f1923' : '2.5px solid transparent',
-              fontSize: 13, fontWeight: tab === t ? 600 : 400,
-              color: tab === t ? '#0f1923' : '#7a8fa0', cursor: 'pointer',
-            }}>{t}</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '1px solid #f0f2f8', background: '#f8f9fc' }}>
+          {[
+            { key: 'Общие требования',    icon: 'checklist' },
+            { key: 'Требования к навыкам', icon: 'psychology' },
+          ].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              padding: '8px 18px', borderRadius: 8, cursor: 'pointer',
+              border: tab === t.key ? 'none' : '1px solid #d0d7e5',
+              background: tab === t.key ? '#0f1923' : '#fff',
+              color: tab === t.key ? '#fff' : '#4a6275',
+              fontSize: 13, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 6,
+              boxShadow: tab === t.key ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+              transition: 'all 0.15s',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{t.icon}</span>
+              {t.key}
+            </button>
           ))}
           {tab === 'Требования к навыкам' && (
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>

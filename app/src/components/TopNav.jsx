@@ -2,11 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const NAV = [
-  { to: '/dashboard', label: 'Мой дашборд'    },
-  { to: '/plans',     label: 'Мои планы'       },
-  { to: '/career-map',label: 'Карьерная карта' },
-  { to: '/titles',    label: 'Должности'       },
-  { to: '/skills',    label: 'Навыки'          },
+  { to: '/plans',     label: 'Мои планы'      },
+  { to: '/career-map',label: 'Карьерный трек' },
+  { to: '/titles',    label: 'Должности'      },
+  { to: '/skills',    label: 'Навыки'         },
 ]
 
 const NOTIFICATIONS = [
@@ -98,35 +97,33 @@ export default function TopNav() {
 
   return (
     <header style={{
-      background: '#0f1923', height: 56, display: 'flex', alignItems: 'center',
+      background: '#fff', height: 56, display: 'flex', alignItems: 'center',
       padding: '0 24px', position: 'sticky', top: 0, zIndex: 100,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+      boxShadow: '0 1px 0 #e0e6ef',
     }}>
       {/* Лого */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 28, flexShrink: 0 }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 6,
-          background: 'linear-gradient(135deg, #4ade80, #22c55e)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ fontSize: 11, fontWeight: 900, color: '#fff', letterSpacing: '-0.05em' }}>BD</span>
-        </div>
-        <div>
-          <div style={{ color: '#fff', fontWeight: 800, fontSize: 13, letterSpacing: '0.05em', lineHeight: 1.1 }}>BI DAMU</div>
-          <div style={{ color: '#5a7a8a', fontSize: 9.5, lineHeight: 1.1 }}>Digital Platform</div>
-        </div>
-      </div>
+      <NavLink to="/dashboard" style={{ marginRight: 28, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+        <img src="/BI Damu.png" alt="BI DAMU" style={{ height: 32, objectFit: 'contain' }} />
+      </NavLink>
 
       {/* Навигация */}
-      <nav style={{ display: 'flex', height: '100%', flex: 1 }}>
+      <style>{`
+        .nav-link:hover { background: #f0f2f8 !important; }
+        .nav-link-active:hover { background: #eef0ff !important; }
+      `}</style>
+      <nav style={{ display: 'flex', alignItems: 'center', flex: 1, gap: 2 }}>
         {NAV.map(item => (
-          <NavLink key={item.to} to={item.to} style={({ isActive }) => ({
-            display: 'flex', alignItems: 'center', padding: '0 16px', height: '100%',
-            color: isActive ? '#fff' : '#7a9aad',
-            borderBottom: isActive ? '2.5px solid #4ade80' : '2.5px solid transparent',
-            fontSize: 13.5, fontWeight: isActive ? 600 : 400,
-            transition: 'all 0.15s', whiteSpace: 'nowrap', textDecoration: 'none',
-          })}>
+          <NavLink key={item.to} to={item.to}
+            className={({ isActive }) => isActive ? 'nav-link nav-link-active' : 'nav-link'}
+            style={({ isActive }) => ({
+              display: 'flex', alignItems: 'center', padding: '7px 16px',
+              borderRadius: 12, margin: '0 1px',
+              color: isActive ? '#4361ee' : '#002068',
+              background: isActive ? '#eef0ff' : 'transparent',
+              fontSize: 14.5, fontWeight: isActive ? 600 : 400,
+              transition: 'all 0.15s', whiteSpace: 'nowrap', textDecoration: 'none',
+            })}
+          >
             {item.label}
           </NavLink>
         ))}
@@ -142,7 +139,7 @@ export default function TopNav() {
             style={{
               display: 'flex', alignItems: 'center', gap: 2, padding: '5px 10px',
               borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 13, fontWeight: 700, color: '#a0b4c4', letterSpacing: '0.05em',
+              fontSize: 13, fontWeight: 700, color: '#4a6275', letterSpacing: '0.05em',
             }}
           >
             {lang}
@@ -177,7 +174,7 @@ export default function TopNav() {
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setNotifOpen(v => !v)}
-            style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#7a9aad', display: 'flex', position: 'relative' }}
+            style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex', position: 'relative' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 22 }}>notifications</span>
             {unread > 0 && (
@@ -186,7 +183,7 @@ export default function TopNav() {
                 width: 16, height: 16, borderRadius: '50%',
                 background: '#dc2626', color: '#fff', fontSize: 9, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '2px solid #0f1923',
+                border: '2px solid #fff',
               }}>{unread}</span>
             )}
           </button>
@@ -262,7 +259,7 @@ export default function TopNav() {
         </div>
 
         {/* Apps */}
-        <button style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#7a9aad', display: 'flex' }}>
+        <button style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>apps</span>
         </button>
 

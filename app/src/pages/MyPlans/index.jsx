@@ -96,16 +96,26 @@ function PlanCard({ plan, onClick }) {
       transition: 'box-shadow 0.15s',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f0f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🎯</div>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f0f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {plan.id === 1
+            ? <img src="/target.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+            : <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#7a8fa0' }}>{plan.id === 2 ? 'settings' : 'description'}</span>}
+        </div>
         <div style={{ display: 'flex', gap: 4 }}>
-          {plan.pinned && <span title="Закреплён" style={{ color: '#4361ee', fontSize: 14 }}>📌</span>}
+          {plan.pinned && <span title="Закреплён" className="material-symbols-outlined" style={{ color: '#4361ee', fontSize: 18 }}>push_pin</span>}
           <span style={{ color: '#cdd5e0', cursor: 'pointer' }}>⋮</span>
         </div>
       </div>
       <div style={{ fontSize: 13, fontWeight: 600, color: '#0f1923', marginBottom: 4, lineHeight: 1.3 }}>{plan.title}</div>
       <div style={{ fontSize: 11, color: '#7a8fa0', marginBottom: 12 }}>{plan.from} · {plan.dept}</div>
       {plan.noData ? (
-        <div style={{ fontSize: 11, color: '#9aafbd', lineHeight: 1.4 }}>Навыки не указаны. Получите персональные рекомендации по итогам оценки!</div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#d97706' }}>hourglass_empty</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#d97706' }}>Ожидает аттестации</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#9aafbd', lineHeight: 1.5 }}>План сформируется автоматически после прохождения оценки компетенций</div>
+        </div>
       ) : (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -115,7 +125,9 @@ function PlanCard({ plan, onClick }) {
           <div style={{ height: 5, background: '#f0f2f8', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
             <div style={{ height: '100%', width: `${pct}%`, background: '#4361ee', borderRadius: 3 }} />
           </div>
-          <div style={{ fontSize: 11, color: plan.expired ? '#ef4444' : '#7a8fa0' }}>⏱ Срок: {plan.deadline}</div>
+          <div style={{ fontSize: 11, color: plan.expired ? '#ef4444' : '#7a8fa0', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 13 }}>schedule</span> Срок: {plan.deadline}
+          </div>
         </>
       )}
     </div>
