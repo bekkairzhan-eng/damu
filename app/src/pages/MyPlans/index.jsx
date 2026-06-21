@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 import CareerPlanDetail from './CareerPlanDetail'
 
-const recPlans = [
-  { id: 1, title: 'Стать Foreman C', from: 'Foreman B', dept: 'BI Development', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true },
+const BASE_PLANS = [
   { id: 2, title: 'План развития на основе оценки', from: 'Foreman B', dept: 'BI Development', noData: true },
   { id: 3, title: 'Предыдущий карьерный план', from: 'Foreman A', dept: 'BI Development', progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, pinned: true },
 ]
@@ -14,6 +14,10 @@ export default function MyPlans() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const location = useLocation()
+  const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman C')
+
+  const activePlan = { id: 1, title: `Стать ${savedGoal}`, from: 'Foreman B', dept: 'BI Development', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true }
+  const recPlans = [activePlan, ...BASE_PLANS]
 
   useEffect(() => {
     if (location.state?.planId) {
