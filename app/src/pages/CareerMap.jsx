@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { plan1DevelopedSkills, plan1TotalSkills, plan1DoneLearning, plan1TotalLearning } from '../data/careerPlan1'
 
@@ -83,6 +84,8 @@ function computeLayout(paths) {
   return { prefix, branches, suffix }
 }
 
+const GOAL_TO_PLAN_ID = { 'Foreman C': 1 }
+
 const TOUR_STEPS = [
   { id: 'here', title: 'Вы здесь', body: 'Это ваша текущая должность. Карьерный путь начинается отсюда.', anchor: 'card-current', position: 'bottom' },
   { id: 'target', title: 'Ваша цель', body: 'Здесь отображается должность, к которой вы стремитесь. Вы уже выбрали Foreman C.', anchor: 'card-target', position: 'bottom' },
@@ -92,8 +95,10 @@ const TOUR_STEPS = [
 ]
 
 export default function CareerMap() {
+  const navigate = useNavigate()
+
   // Сохранённая цель юзера (для дефолтного вида)
-  const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman C')
+  const [savedGoal, setSavedGoal] = useLocalStorage('careermap:goal', 'Foreman C')
 
   // Режим "Построить путь" — не персистируется, сбрасывается при загрузке
   const [buildFrom, setBuildFrom] = useState(CURRENT_POSITION)
@@ -106,6 +111,7 @@ export default function CareerMap() {
 
   const [suggestions, setSuggestions] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
+  const [confirmGoal, setConfirmGoal] = useState(null)
   const [zoom, setZoom] = useLocalStorage('careermap:zoom', 1)
   const [tourSeen, setTourSeen] = useLocalStorage('careermap:tour-seen', false)
   const [tourStep, setTourStep] = useState(null)
@@ -153,6 +159,33 @@ export default function CareerMap() {
     <div style={{ padding: '28px 32px', position: 'relative' }}>
       {selectedCard && (
         <PositionPanel position={selectedCard} isTarget={selectedCard === savedGoal} onClose={() => setSelectedCard(null)} />
+      )}
+
+      {confirmGoal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 700, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: '28px 32px', width: 420, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f0f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#4361ee' }}>flag</span>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 17, color: '#0f1923' }}>Сменить карьерную цель?</div>
+            </div>
+            <p style={{ fontSize: 13, color: '#4a6275', lineHeight: 1.6, marginBottom: 8 }}>
+              Текущая цель: <strong style={{ color: '#0f1923' }}>{savedGoal}</strong>
+            </p>
+            <p style={{ fontSize: 13, color: '#4a6275', lineHeight: 1.6, marginBottom: 24 }}>
+              Новая цель: <strong style={{ color: '#4361ee' }}>{confirmGoal}</strong>. Карьерный план и рекомендации будут перестроены под новую позицию.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmGoal(null)} style={{ padding: '9px 20px', borderRadius: 8, border: '1px solid #d0d7e5', background: '#fff', color: '#4a6275', fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>
+                Отмена
+              </button>
+              <button onClick={() => { setSavedGoal(confirmGoal); setConfirmGoal(null) }} style={{ padding: '9px 20px', borderRadius: 8, border: 'none', background: '#4361ee', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Да, установить
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {activeTour && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 400, pointerEvents: 'none' }}>
@@ -256,7 +289,9 @@ export default function CareerMap() {
                   {prefix.map((pos, i) => (
                     <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
                       {i > 0 && <Arrow />}
-                      <MapCard {...mkCard(pos, { current: pos === CURRENT_POSITION, past: PAST_POSITIONS.has(pos) && pos !== CURRENT_POSITION, fullBars: pos === CURRENT_POSITION })} onDetails={() => setSelectedCard(pos)} />
+                      <MapCard {...mkCard(pos, { current: pos === CURRENT_POSITION, past: PAST_POSITIONS.has(pos) && pos !== CURRENT_POSITION, fullBars: pos === CURRENT_POSITION })}
+                        onDetails={() => setSelectedCard(pos)}
+                        onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null} />
                     </div>
                   ))}
                   <Arrow />
@@ -270,7 +305,9 @@ export default function CareerMap() {
                         {branch.map((pos, i) => (
                           <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
                             {i > 0 && <Arrow />}
-                            <MapCard {...mkCard(pos)} onDetails={() => setSelectedCard(pos)} />
+                            <MapCard {...mkCard(pos)}
+                              onDetails={() => setSelectedCard(pos)}
+                              onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null} />
                           </div>
                         ))}
                         <Arrow />
@@ -282,8 +319,10 @@ export default function CareerMap() {
                     <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
                       {i > 0 && <Arrow />}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-                        <MapCard {...mkCard(pos, { target: pos === buildTo })} onDetails={() => setSelectedCard(pos)} />
-                        {pos === buildTo && <button style={openPlanBtn}>Открыть карьерный план</button>}
+                        <MapCard {...mkCard(pos, { target: pos === buildTo })}
+                          onDetails={() => setSelectedCard(pos)}
+                          onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null} />
+                        {pos === buildTo && <button onClick={() => navigate('/plans', { state: { planId: GOAL_TO_PLAN_ID[buildTo] } })} style={openPlanBtn}>Открыть карьерный план</button>}
                       </div>
                     </div>
                   ))}
@@ -294,10 +333,12 @@ export default function CareerMap() {
                   {prefix.map((pos, i) => (
                     <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
                       {i > 0 && <Arrow />}
-                      <MapCard {...mkCard(pos, { current: pos === CURRENT_POSITION, past: PAST_POSITIONS.has(pos) && pos !== CURRENT_POSITION, fullBars: pos === CURRENT_POSITION, target: pos === buildTo && i === prefix.length - 1 })} onDetails={() => setSelectedCard(pos)} />
+                      <MapCard {...mkCard(pos, { current: pos === CURRENT_POSITION, past: PAST_POSITIONS.has(pos) && pos !== CURRENT_POSITION, fullBars: pos === CURRENT_POSITION, target: pos === buildTo && i === prefix.length - 1 })}
+                        onDetails={() => setSelectedCard(pos)}
+                        onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null} />
                     </div>
                   ))}
-                  {buildTo && <div style={{ marginLeft: 16 }}><button style={openPlanBtn}>Открыть карьерный план</button></div>}
+                  {buildTo && <div style={{ marginLeft: 16 }}><button onClick={() => navigate('/plans', { state: { planId: GOAL_TO_PLAN_ID[buildTo] } })} style={openPlanBtn}>Открыть карьерный план</button></div>}
                 </>
               )}
             </div>
@@ -335,7 +376,12 @@ export default function CareerMap() {
                 <div />
               </div>
 
-              <button style={openPlanBtn}>Открыть карьерный план</button>
+              <button
+                onClick={() => navigate('/plans', { state: { planId: GOAL_TO_PLAN_ID[savedGoal] } })}
+                style={openPlanBtn}
+              >
+                Открыть карьерный план
+              </button>
             </div>
           )}
         </div>
@@ -370,6 +416,10 @@ export default function CareerMap() {
       )}
     </div>
   )
+}
+
+function canSetGoal(pos, currentGoal) {
+  return !PAST_POSITIONS.has(pos) && pos !== CURRENT_POSITION && pos !== currentGoal
 }
 
 // Хелпер для пропсов карточки в режиме исследования
@@ -455,7 +505,7 @@ function TourTooltip({ active, step, tourStep, total, onNext, onSkip, onShowLate
   )
 }
 
-function MapCard({ title, grade, current, target, past, date, deadline, skillsDone, skillsTotal, learningDone, learningTotal, onDetails }) {
+function MapCard({ title, grade, current, target, past, date, deadline, skillsDone, skillsTotal, learningDone, learningTotal, onDetails, onSetGoal }) {
   const skillPct = skillsTotal ? Math.round((skillsDone / skillsTotal) * 100) : 0
   const learnPct = learningTotal ? Math.round((learningDone / learningTotal) * 100) : 0
   const headerBg = current ? '#4361ee' : target ? '#3d9970' : null
@@ -483,7 +533,14 @@ function MapCard({ title, grade, current, target, past, date, deadline, skillsDo
             <MiniBar label="Обучение" done={learningDone} total={learningTotal} pct={learnPct} color="#059669" />
           </div>
         )}
-        <button onClick={onDetails} style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Подробнее →</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <button onClick={onDetails} style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600, textAlign: 'left' }}>Подробнее →</button>
+          {onSetGoal && (
+            <button onClick={onSetGoal} style={{ fontSize: 11, color: '#059669', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600, textAlign: 'left' }}>
+              ✦ Установить карьерную цель
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
