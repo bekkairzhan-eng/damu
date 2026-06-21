@@ -416,8 +416,12 @@ function EligibilityTab() {
   const developedSkills = skillGroups.flatMap(g => g.skills).filter(s => s.status === 'developed').length
   const skillPct = Math.round((developedSkills / totalSkills) * 100)
 
-  const totalLearning = LEARNING_PLAN.flatMap(g => g.items).filter(i => i.type === 'Курс').length
-  const doneLearning = LEARNING_PLAN.flatMap(g => g.items).filter(i => i.type === 'Курс' && i.status === 'done').length
+  const mandatoryItems = LEARNING_PLAN
+    .filter(g => g.category !== 'Рекомендуемые курсы')
+    .flatMap(g => g.items)
+    .filter(i => !i.title.toLowerCase().includes('казахский'))
+  const totalLearning = mandatoryItems.length
+  const doneLearning = mandatoryItems.filter(i => i.status === 'done').length
 
   const reqs = [
     { label: 'Стаж в BI Group (мин. 3 года)', value: '4 г 11 мес', ok: true },

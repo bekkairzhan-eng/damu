@@ -1,43 +1,71 @@
-import { useState } from 'react'
+import { useRef } from 'react'
 
 const LEVELS = [
-  { grade: 'A', title: 'Foreman A' },
-  { grade: 'B', title: 'Foreman B', current: true },
-  { grade: 'C', title: 'Foreman C', target: true },
-  { grade: 'SM', title: 'Site Manager' },
-]
-
-const FULL_LADDER = [
-  'Foreman A', 'Foreman B', 'Foreman C', 'Site Manager',
-  'Deputy Project Manager', 'Project Manager',
+  { grade: 'A1', title: 'Foreman A' },
+  { grade: 'A2', title: 'Foreman B', current: true },
+  { grade: 'A3', title: 'Foreman C', target: true },
+  { grade: 'B1', title: 'Site Manager' },
 ]
 
 const GEN_REQS = [
   {
     name: 'Работа с заказчиком',
+    icon: 'handshake',
     values: [
-      'Участвует в совещаниях по проекту.',
-      'Активно участвует в совещаниях. Может вести ограниченное взаимодействие с заказчиком.',
-      'Работает напрямую с заказчиком в зоне ответственности. Ведёт умеренные переговоры.',
-      'Ведёт сложные переговоры с заказчиком, выстраивает доверие, управляет ожиданиями.',
+      'Участвует в совещаниях по проекту в качестве наблюдателя. Фиксирует замечания и передаёт их руководителю. Прямого взаимодействия с представителями заказчика не ведёт.',
+      'Участвует в еженедельных планёрках, готовит краткие отчёты о ходе работ. Отвечает на оперативные запросы заказчика в рамках своего участка. Сложные вопросы эскалирует руководителю.',
+      'Самостоятельно представляет интересы участка на встречах с заказчиком. Ведёт переговоры по изменениям объёма и технологии работ. Строит рабочие отношения с ключевыми представителями заказчика.',
+      'Ведёт сложные переговоры с заказчиком, управляет ожиданиями и своевременно информирует об отклонениях. Отвечает за удовлетворённость заказчика в целом по объекту. Выстраивает долгосрочные партнёрские отношения.',
     ],
   },
   {
     name: 'Управление командой',
+    icon: 'group',
     values: [
-      'Работает под непосредственным руководством.',
-      'Работает самостоятельно без постоянного контроля.',
-      'Выступает наставником для менее опытных коллег. Организует работу бригады.',
-      'Применяет методы лидерства (наставничество, делегирование, коучинг, урегулирование конфликтов).',
+      'Работает под непосредственным руководством старшего прораба. Получает задания на день и выполняет их в установленные сроки. Координирует работу 1–2 бригад под контролем.',
+      'Самостоятельно управляет бригадами на участке без постоянного контроля. Распределяет задания и ресурсы, отслеживает ежедневный план. При необходимости перераспределяет людей между фронтами работ.',
+      'Выступает наставником для Foreman A и B, организует работу нескольких бригад. Делегирует и контролирует, разрешает производственные конфликты внутри команды. Участвует в оценке результатов подчинённых прорабов.',
+      'Применяет методы лидерства: наставничество, делегирование, коучинг и урегулирование конфликтов. Формирует культуру исполнительской дисциплины и вовлечённости на объекте. Привлекает и удерживает сильных прорабов.',
     ],
   },
   {
     name: 'Строительные практики',
+    icon: 'construction',
     values: [
-      'Понимает базовые строительные нормы и чертежи.',
-      'Самостоятельно читает и применяет проектную документацию.',
-      'Предлагает технические решения, контролирует соблюдение нормативов.',
-      'Отвечает за архитектурные и технические решения на участке, принимает ключевые решения.',
+      'Знает базовые строительные нормы и умеет читать чертежи под руководством. Выполняет работы строго по техническому заданию. Соблюдает технологическую последовательность операций.',
+      'Самостоятельно читает и применяет проектную документацию. Выявляет несоответствия в проекте и своевременно сообщает руководству. Предлагает простые технические решения по типовым ситуациям.',
+      'Предлагает технические решения на своём участке, контролирует соблюдение нормативов. Может вносить изменения в технологическую последовательность при согласовании с ГИПом. Следит за актуальностью норм и обновлений СНиП.',
+      'Принимает ключевые технические решения по объекту в целом. Взаимодействует с проектным институтом и техническим надзором. Отвечает за соответствие строительства рабочей документации и требованиям экспертизы.',
+    ],
+  },
+  {
+    name: 'Ответственность и полномочия',
+    icon: 'verified',
+    values: [
+      'Несёт ответственность за качество работ на назначенном участке в рамках смены. Полномочия ограничены: самостоятельно принимает решения только по типовым ситуациям, всё остальное согласует с руководителем.',
+      'Отвечает за результат работ на участке в полном объёме: качество, сроки, безопасность. Вправе самостоятельно останавливать работы при выявлении нарушений ТБ или качества и уведомлять руководство.',
+      'Несёт ответственность за несколько участков и за работу младших прорабов. Вправе перераспределять людей и технику внутри объекта в согласованных рамках без дополнительного одобрения.',
+      'Полная операционная ответственность за объект: сроки, бюджет, качество и безопасность. Уполномочен принимать оперативные решения по всем вопросам объекта, включая остановку работ и замену субподрядчиков.',
+    ],
+  },
+  {
+    name: 'Отчётность и документация',
+    icon: 'assignment',
+    values: [
+      'Ведёт ежедневный журнал производства работ, фиксирует отклонения. Заполняет акты скрытых работ под контролем руководителя. Фотофиксация и замеры — ежедневно.',
+      'Составляет недельные отчёты о выполнении плана, расходе материалов и трудозатратах. Самостоятельно оформляет исполнительную документацию и акты на выполненные работы.',
+      'Формирует сводные отчёты по нескольким участкам для руководства. Контролирует правильность исполнительной документации у подчинённых. Участвует в подготовке промежуточных актов с заказчиком (КС-2/КС-3).',
+      'Готовит ежемесячные отчёты для заказчика и руководства компании по всему объекту. Обеспечивает полноту и достоверность сдаточной документации при закрытии этапов и сдаче объекта.',
+    ],
+  },
+  {
+    name: 'Опыт и требования',
+    icon: 'workspace_premium',
+    values: [
+      'Минимум 1 год опыта в строительстве. Профильное среднее или высшее образование. Базовые знания нормативов и стройматериалов. Казахский язык — B1.',
+      'От 3 лет опыта, включая не менее 1 года в роли Foreman A. Уверенное владение AutoCAD на базовом уровне. Казахский язык — B1+. Опыт ведения исполнительной документации на реальных объектах.',
+      'От 5 лет опыта, из них не менее 2 лет в роли Foreman B. Казахский язык — B2. Опыт работы на объектах площадью от 2 000 м². Базовое владение BIM-инструментами (Revit или аналог).',
+      'От 8 лет в строительстве, включая опыт руководства крупным объектом (от 5 000 м²). Высшее профильное образование обязательно. Казахский язык — B2. Опыт взаимодействия с заказчиком и проектными организациями.',
     ],
   },
 ]
@@ -59,81 +87,62 @@ const SKILL_REQS = [
 
 const KB_BASE = 'https://kb.bi.group'
 const KB_LINKS = {
-  'Foreman A':           `${KB_BASE}/foreman-a`,
-  'Foreman B':           `${KB_BASE}/foreman-b`,
-  'Foreman C':           `${KB_BASE}/foreman-c`,
-  'Site Manager':        `${KB_BASE}/site-manager`,
-  'Deputy Project Manager': `${KB_BASE}/deputy-project-manager`,
-  'Project Manager':        `${KB_BASE}/project-manager`,
+  'Foreman A': `${KB_BASE}/foreman-a`,
+  'Foreman B': `${KB_BASE}/foreman-b`,
+  'Foreman C': `${KB_BASE}/foreman-c`,
+  'Site Manager': `${KB_BASE}/site-manager`,
 }
 
 const LEVEL_COLOR = { 'Базовый': '#e0e6ef', 'Средний': '#4361ee', 'Продвинутый': '#22c55e', 'Эксперт': '#f59e0b', 'B1': '#c4b5fd', 'B2': '#8b5cf6' }
 const LEVEL_TEXT = { 'Базовый': '#4a6275', 'Средний': '#fff', 'Продвинутый': '#fff', 'Эксперт': '#fff', 'B1': '#fff', 'B2': '#fff' }
 
 export default function Titles() {
-  const [tab, setTab] = useState('Общие требования')
-  const [showMyLevel, setShowMyLevel] = useState(false)
+  const genRef = useRef(null)
+  const skillsRef = useRef(null)
 
   const cats = [...new Set(SKILL_REQS.map(s => s.cat))]
 
+  const scrollTo = (ref) => {
+    if (!ref.current) return
+    const y = ref.current.getBoundingClientRect().top + window.pageYOffset - 72
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+
   return (
     <div style={{ padding: '24px 32px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Должности</h1>
           <p style={{ fontSize: 14, color: '#7a8fa0' }}>Изучите все должности и карьерные пути в компании</p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <a href="/career-map" style={{ fontSize: 12, color: '#4361ee' }}>Посмотреть в Карьерном треке →</a>
+        <a href="/career-map" style={{ fontSize: 12, color: '#4361ee', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>alt_route</span>
+          Посмотреть в Карьерном треке
+        </a>
+      </div>
+
+      {/* Все должности — кнопка + поиск */}
+      <div style={{ background: '#fff', borderRadius: 12, padding: '12px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1.5px solid #4361ee', background: '#f0f4ff', color: '#4361ee', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>work</span>
+          Все должности
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>expand_more</span>
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, border: '1px solid #e8edf2', borderRadius: 8, padding: '7px 12px', background: '#fafafa' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#9aafbd' }}>search</span>
+          <input
+            placeholder="Поиск должности или функции"
+            style={{ border: 'none', outline: 'none', fontSize: 13, color: '#0f1923', width: '100%', background: 'transparent' }}
+          />
         </div>
       </div>
 
-      {/* Полная карьерная лестница */}
-      <div style={{ background: '#fff', borderRadius: 12, padding: '14px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', alignItems: 'center' }}>
-        {FULL_LADDER.map((title, i) => {
-          const isCurrent = title === 'Foreman B'
-          const isTarget = title === 'Foreman C'
-          return (
-            <div key={title} style={{ display: 'flex', alignItems: 'center', flex: i < FULL_LADDER.length - 1 ? '1' : '0 0 auto' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                <div style={{
-                  padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: isCurrent || isTarget ? 700 : 400,
-                  background: isCurrent ? '#4361ee' : isTarget ? '#f0fff4' : '#f8f9fc',
-                  color: isCurrent ? '#fff' : isTarget ? '#16a34a' : '#4a6275',
-                  border: isTarget ? '1.5px solid #22c55e' : isCurrent ? 'none' : '1px solid #e8edf2',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {isCurrent && <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: 'middle', marginRight: 3 }}>person_pin</span>}
-                  {title}
-                </div>
-                {KB_LINKS[title] && (
-                  <a href={KB_LINKS[title]} target="_blank" rel="noreferrer"
-                    style={{ fontSize: 10, color: isCurrent ? '#4361ee' : isTarget ? '#16a34a' : '#9aafbd', textDecoration: 'none', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 11 }}>menu_book</span> Читать
-                  </a>
-                )}
-              </div>
-              {i < FULL_LADDER.length - 1 && (
-                <div style={{ flex: 1, height: 2, background: i < 1 ? '#4361ee' : '#e0e6ef', minWidth: 12 }} />
-              )}
-            </div>
-          )
-        })}
-      </div>
+      {/* Таблица */}
+      <div ref={genRef} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
 
-      <div style={{ background: '#fff', borderRadius: 10, padding: '12px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 12, color: '#4a6275' }}>Все должности</div>
-        <input placeholder="🔍 Поиск по функциям или должностям" style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, flex: 1, outline: 'none' }} />
-        <div style={{ padding: '5px 12px', borderRadius: 7, background: '#f0f4ff', border: '1px solid #c7d2fe', fontSize: 12, color: '#4361ee', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Функция: Полевой состав ✕
-        </div>
-        <div style={{ padding: '5px 12px', borderRadius: 7, background: '#f0f4ff', border: '1px solid #c7d2fe', fontSize: 12, color: '#4361ee', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Отдел: BI Development ✕
-        </div>
-      </div>
-
-      <div style={{ background: '#fff', borderRadius: '12px 12px 0 0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(4, 1fr)', borderBottom: '2px solid #f0f2f8' }}>
+        {/* Заголовки колонок */}
+        <div style={{ display: 'grid', gridTemplateColumns: '220px repeat(4, 1fr)', borderBottom: '2px solid #f0f2f8', position: 'sticky', top: 0, background: '#fff', zIndex: 10, borderRadius: '12px 12px 0 0' }}>
           <div style={{ padding: '14px 16px' }} />
           {LEVELS.map((l, i) => (
             <div key={l.title} style={{ padding: '14px 12px', borderLeft: '1px solid #f0f2f8', background: l.current ? '#f0f4ff' : l.target ? '#f0fff4' : 'transparent' }}>
@@ -152,84 +161,91 @@ export default function Titles() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '1px solid #f0f2f8', background: '#f8f9fc' }}>
-          {[
-            { key: 'Общие требования',    icon: 'checklist' },
-            { key: 'Требования к навыкам', icon: 'psychology' },
-          ].map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{
-              padding: '8px 18px', borderRadius: 8, cursor: 'pointer',
-              border: tab === t.key ? 'none' : '1px solid #d0d7e5',
-              background: tab === t.key ? '#0f1923' : '#fff',
-              color: tab === t.key ? '#fff' : '#4a6275',
-              fontSize: 13, fontWeight: 600,
-              display: 'flex', alignItems: 'center', gap: 6,
-              boxShadow: tab === t.key ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-              transition: 'all 0.15s',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{t.icon}</span>
-              {t.key}
-            </button>
-          ))}
-          {tab === 'Требования к навыкам' && (
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#4a6275', cursor: 'pointer' }}>
-                <input type="checkbox" checked={showMyLevel} onChange={e => setShowMyLevel(e.target.checked)} style={{ accentColor: '#4361ee' }} />
-                Показать мой уровень
-              </label>
-              <button style={btnOutline}>Выделить навыки</button>
-            </div>
-          )}
+        {/* Навигация-якоря */}
+        <div style={{ display: 'flex', gap: 6, padding: '10px 16px', borderBottom: '1px solid #f0f2f8', background: '#f8f9fc' }}>
+          <span style={{ fontSize: 12, color: '#9aafbd', alignSelf: 'center', marginRight: 4 }}>Перейти к разделу:</span>
+          <button onClick={() => scrollTo(genRef)} style={anchorBtn}>
+            <span className="material-symbols-outlined" style={{ fontSize: 13 }}>checklist</span>
+            Общие требования
+          </button>
+          <button onClick={() => scrollTo(skillsRef)} style={anchorBtn}>
+            <span className="material-symbols-outlined" style={{ fontSize: 13 }}>psychology</span>
+            Требования к навыкам ↓
+          </button>
         </div>
 
-        {tab === 'Общие требования' ? (
-          <div>
-            {GEN_REQS.map(req => (
-              <div key={req.name} style={{ display: 'grid', gridTemplateColumns: '200px repeat(4, 1fr)', borderBottom: '1px solid #f0f2f8' }}>
-                <div style={{ padding: '16px', fontWeight: 600, fontSize: 13, color: '#0f1923', display: 'flex', alignItems: 'flex-start' }}>{req.name}</div>
-                {req.values.map((v, i) => (
-                  <div key={i} style={{ padding: '16px 12px', borderLeft: '1px solid #f0f2f8', fontSize: 12, color: '#4a6275', lineHeight: 1.5, background: LEVELS[i].current ? '#fafbff' : LEVELS[i].target ? '#f9fff9' : 'transparent' }}>
-                    {v}
-                    <div style={{ marginTop: 8, fontSize: 11, color: '#9aafbd', fontStyle: 'italic' }}>Также рекомендуется: проявлять проактивную коммуникацию.</div>
+        {/* ── Секция 1: Общие требования ── */}
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '220px repeat(4, 1fr)', background: '#f8f9fc', borderBottom: '1px solid #f0f2f8' }}>
+            <div style={{ padding: '10px 16px', fontWeight: 700, fontSize: 13, color: '#0f1923', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#7a8fa0' }}>checklist</span>
+              Общие требования
+            </div>
+            {LEVELS.map((_, i) => <div key={i} style={{ borderLeft: '1px solid #f0f2f8' }} />)}
+          </div>
+
+          {GEN_REQS.map(req => (
+            <div key={req.name} style={{ display: 'grid', gridTemplateColumns: '220px repeat(4, 1fr)', borderBottom: '1px solid #f0f2f8' }}>
+              <div style={{ padding: '16px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#9aafbd', marginTop: 1, flexShrink: 0 }}>{req.icon}</span>
+                <span style={{ fontWeight: 600, fontSize: 13, color: '#0f1923', lineHeight: 1.4 }}>{req.name}</span>
+              </div>
+              {req.values.map((v, i) => (
+                <div key={i} style={{ padding: '16px 14px', borderLeft: '1px solid #f0f2f8', fontSize: 12, color: '#4a6275', lineHeight: 1.65, background: LEVELS[i].current ? '#fafbff' : LEVELS[i].target ? '#f9fff9' : 'transparent' }}>
+                  {v}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Секция 2: Требования к навыкам ── */}
+        <div ref={skillsRef}>
+          <div style={{ display: 'grid', gridTemplateColumns: '220px repeat(4, 1fr)', background: '#f8f9fc', borderBottom: '1px solid #f0f2f8', borderTop: '2px solid #e8edf2' }}>
+            <div style={{ padding: '10px 16px', fontWeight: 700, fontSize: 13, color: '#0f1923', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#7a8fa0' }}>psychology</span>
+              Требования к навыкам
+            </div>
+            {LEVELS.map((_, i) => <div key={i} style={{ borderLeft: '1px solid #f0f2f8' }} />)}
+          </div>
+
+          {cats.map(cat => {
+            const catSkills = SKILL_REQS.filter(s => s.cat === cat)
+            return (
+              <div key={cat}>
+                <div style={{ display: 'grid', gridTemplateColumns: '220px repeat(4, 1fr)', background: '#fafbfc', borderBottom: '1px solid #f0f2f8' }}>
+                  <div style={{ padding: '8px 16px', fontWeight: 600, fontSize: 11, color: '#7a8fa0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{cat}</div>
+                  {LEVELS.map((_, i) => <div key={i} style={{ borderLeft: '1px solid #f0f2f8' }} />)}
+                </div>
+                {catSkills.map(skill => (
+                  <div key={skill.name} style={{ display: 'grid', gridTemplateColumns: '220px repeat(4, 1fr)', borderBottom: '1px solid #f0f2f8' }}>
+                    <div style={{ padding: '10px 16px', fontSize: 13, color: '#1a2b3c', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {skill.mandatory && <span title="Обязательный" style={{ color: '#f59e0b', fontSize: 12 }}>★</span>}
+                      {skill.name}
+                    </div>
+                    {skill.levels.map((lvl, i) => (
+                      <div key={i} style={{ padding: '10px 12px', borderLeft: '1px solid #f0f2f8', display: 'flex', alignItems: 'center', background: LEVELS[i].current ? '#fafbff' : LEVELS[i].target ? '#f9fff9' : 'transparent' }}>
+                        {lvl
+                          ? <span style={{ padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600, background: LEVEL_COLOR[lvl], color: LEVEL_TEXT[lvl] }}>{lvl}</span>
+                          : <span style={{ color: '#e0e6ef', fontSize: 16 }}>—</span>
+                        }
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div>
-            {cats.map(cat => {
-              const catSkills = SKILL_REQS.filter(s => s.cat === cat)
-              return (
-                <div key={cat}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(4, 1fr)', background: '#f8f9fc', borderBottom: '1px solid #f0f2f8' }}>
-                    <div style={{ padding: '8px 16px', fontWeight: 700, fontSize: 12, color: '#0f1923' }}>{cat}</div>
-                    {LEVELS.map((_, i) => <div key={i} style={{ borderLeft: '1px solid #f0f2f8' }} />)}
-                  </div>
-                  {catSkills.map(skill => (
-                    <div key={skill.name} style={{ display: 'grid', gridTemplateColumns: '200px repeat(4, 1fr)', borderBottom: '1px solid #f0f2f8' }}>
-                      <div style={{ padding: '10px 16px', fontSize: 13, color: '#1a2b3c', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        {skill.mandatory && <span title="Обязательный" style={{ color: '#f59e0b', fontSize: 12 }}>★</span>}
-                        {skill.name}
-                      </div>
-                      {skill.levels.map((lvl, i) => (
-                        <div key={i} style={{ padding: '10px 12px', borderLeft: '1px solid #f0f2f8', display: 'flex', alignItems: 'center', gap: 6, background: LEVELS[i].current ? '#fafbff' : LEVELS[i].target ? '#f9fff9' : 'transparent' }}>
-                          {lvl ? (
-                            <span style={{ padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600, background: LEVEL_COLOR[lvl], color: LEVEL_TEXT[lvl] }}>{lvl}</span>
-                          ) : <span style={{ color: '#e0e6ef', fontSize: 16 }}>—</span>}
-                          {LEVELS[i].current && lvl && <span title="Развивается" style={{ fontSize: 12, color: '#4361ee' }}>↑</span>}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )
-            })}
-          </div>
-        )}
+            )
+          })}
+        </div>
+
       </div>
     </div>
   )
 }
 
-const btnOutline = { padding: '5px 12px', borderRadius: 7, border: '1px solid #d0d7e5', background: '#fff', color: '#4a6275', fontSize: 12, cursor: 'pointer' }
+const anchorBtn = {
+  display: 'inline-flex', alignItems: 'center', gap: 5,
+  padding: '5px 12px', borderRadius: 7, fontSize: 12, fontWeight: 400,
+  border: '1px solid #d0d7e5', background: '#fff', color: '#4a6275',
+  cursor: 'pointer',
+}
