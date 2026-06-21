@@ -20,7 +20,32 @@ export default function Layout() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <TopNav />
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+
+        {/* Кнопка свернуть/развернуть — на границе сайдбара */}
+        <div style={{
+          position: 'fixed',
+          left: W,
+          top: 74,
+          transform: 'translateX(-50%)',
+          transition: 'left 0.25s ease',
+          zIndex: 50,
+        }}>
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            title={collapsed ? 'Развернуть' : 'Свернуть'}
+            style={{
+              width: 24, height: 24, borderRadius: '50%',
+              background: '#002068', color: '#fff', border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,32,104,0.35)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14, transition: 'transform 0.25s', transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>
+              chevron_right
+            </span>
+          </button>
+        </div>
 
         {/* Сайдбар */}
         <aside style={{
@@ -37,26 +62,12 @@ export default function Layout() {
             .sb-link-active:hover { background: #eef0ff !important; }
           `}</style>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', padding: '0 8px 8px', marginBottom: 2 }}>
+          <div style={{ padding: '0 8px 8px', marginBottom: 2, minHeight: 24 }}>
             {!collapsed && (
               <span style={{ fontSize: 11, fontWeight: 700, color: '#9aafbd', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                 Личный кабинет
               </span>
             )}
-            <button
-              onClick={() => setCollapsed(c => !c)}
-              title={collapsed ? 'Развернуть' : 'Свернуть'}
-              style={{
-                width: 24, height: 24, borderRadius: '50%',
-                background: '#002068', color: '#fff', border: 'none',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, boxShadow: '0 2px 8px rgba(0,32,104,0.25)',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 14, transition: 'transform 0.25s', transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>
-                chevron_right
-              </span>
-            </button>
           </div>
 
           {NAV_ITEMS.map(item => (
