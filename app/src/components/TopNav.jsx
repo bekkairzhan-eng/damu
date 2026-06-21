@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const NAV = [
-  { to: '/plans',     label: 'Мои планы'      },
+  { to: '/plans',     label: 'Моё развитие'   },
   { to: '/career-map',label: 'Карьерный трек' },
   { to: '/titles',    label: 'Должности'      },
   { to: '/skills',    label: 'Навыки'         },

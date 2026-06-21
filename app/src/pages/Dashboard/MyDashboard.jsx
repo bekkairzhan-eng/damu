@@ -1,8 +1,12 @@
+import { plan1TotalSkills, plan1DevelopedSkills, plan1TotalLearning, plan1DoneLearning } from '../../data/careerPlan1'
+
 const plans = [
   {
     id: 1, title: 'Стать Foreman C',
     from: 'Foreman B', to: 'Foreman C', dept: 'BI Development',
-    progress: 15, total: 21, deadline: '06 Фев 2027', icon: null,
+    skills: { done: plan1DevelopedSkills, total: plan1TotalSkills },
+    learning: { done: plan1DoneLearning, total: plan1TotalLearning },
+    deadline: '06 Фев 2027', icon: null,
   },
   {
     id: 2, title: 'План развития на основе оценки',
@@ -35,12 +39,13 @@ const notifications = [
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProfile } from '../../ProfileContext'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 export default function MyDashboard() {
   const navigate = useNavigate()
   const { overallScore } = useProfile()
-  const [pending, setPending] = useState(INITIAL_PENDING)
-  const [confirmed, setConfirmed] = useState([])
+  const [pending, setPending] = useLocalStorage('dashboard:pending', INITIAL_PENDING)
+  const [confirmed, setConfirmed] = useLocalStorage('dashboard:confirmed', [])
 
   function confirm(skill) {
     setConfirmed(prev => [...prev, skill])
@@ -159,8 +164,24 @@ export default function MyDashboard() {
   )
 }
 
+function MiniProgress({ label, done, total, color }) {
+  const pct = Math.round((done / total) * 100)
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+        <span style={{ fontSize: 11, color: '#7a8fa0' }}>{label}</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#0f1923' }}>{done}/{total}</span>
+      </div>
+      <div style={{ height: 4, background: '#f0f2f8', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 3 }} />
+      </div>
+    </div>
+  )
+}
+
 function PlanCard({ plan, onClick }) {
-  const pct = plan.noData ? 0 : Math.round((plan.progress / plan.total) * 100)
+  const hasDual = plan.skills && plan.learning
+  const pct = plan.noData ? 0 : hasDual ? 0 : Math.round((plan.progress / plan.total) * 100)
   return (
     <div onClick={onClick} style={{ flex: 1, border: '1px solid #e8edf2', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', transition: 'box-shadow 0.15s' }}
       onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(67,97,238,0.15)'}
@@ -175,6 +196,16 @@ function PlanCard({ plan, onClick }) {
       </div>
       {plan.noData ? (
         <div style={{ fontSize: 11, color: '#9aafbd', lineHeight: 1.4 }}>Навыки не указаны. Получите персональные рекомендации на основе оценки!</div>
+      ) : hasDual ? (
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <MiniProgress label="Навыки" done={plan.skills.done} total={plan.skills.total} color="#4361ee" />
+            <MiniProgress label="Обучение" done={plan.learning.done} total={plan.learning.total} color="#059669" />
+          </div>
+          <div style={{ fontSize: 11, color: plan.expired ? '#ef4444' : '#7a8fa0', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 13 }}>schedule</span> Срок: {plan.deadline}
+          </div>
+        </>
       ) : (
         <>
           <div>

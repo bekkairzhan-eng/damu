@@ -3,7 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import TopNav from './TopNav'
 
 const NAV_ITEMS = [
-  { path: '/dashboard/my-dashboard', label: 'Мой дашборд',  icon: 'dashboard'     },
+  { path: '/dashboard/my-dashboard', label: 'Моя страница',  icon: 'dashboard'     },
   { path: '/dashboard/my-skills',    label: 'Мои навыки',   icon: 'school'        },
   { path: '/dashboard/experience',   label: 'Профиль опыта', icon: 'person'       },
 ]

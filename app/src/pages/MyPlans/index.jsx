@@ -26,7 +26,7 @@ export default function MyPlans() {
 
   return (
     <div style={{ padding: '28px 32px' }}>
-      <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Мои планы</h1>
+      <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Моё развитие</h1>
       <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 28 }}>Станьте профессионалом, которым вы всегда хотели быть</p>
 
       <Section title="Рекомендовано для роста" subtitle="Планы, рекомендованные вам для дальнейшего развития">

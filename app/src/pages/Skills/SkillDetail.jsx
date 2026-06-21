@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 const LEVELS_INFO = {
   'Базовый': 'На этом уровне присутствует базовое понимание, но практический опыт ограничен. Основные концепции известны, но ещё не применяются самостоятельно.',
@@ -21,7 +22,7 @@ const PRACTICAL_TASKS = [
 
 export default function SkillDetail({ skill, onBack }) {
   const [activeLevel, setActiveLevel] = useState('Базовый')
-  const [myLevel, setMyLevel] = useState('Средний')
+  const [myLevel, setMyLevel] = useLocalStorage(`skill:myLevel:${skill.name}`, 'Средний')
   const LEVELS = ['Базовый', 'Средний', 'Продвинутый', 'Эксперт']
 
   return (

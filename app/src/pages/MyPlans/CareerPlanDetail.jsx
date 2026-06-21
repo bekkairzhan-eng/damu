@@ -1,49 +1,6 @@
 import { useState } from 'react'
-
-const skillGroups = [
-  {
-    name: 'Строительные практики', skills: [
-      { name: 'Управление строительной площадкой', level: 3, target: 4, status: 'gap' },
-      { name: 'Контроль качества строительства', level: 3, target: 4, status: 'gap' },
-      { name: 'Нормативная база строительства', level: 3, target: 4, status: 'gap' },
-    ]
-  },
-  {
-    name: 'Технологии', skills: [
-      { name: 'BIM-технологии (Revit)', level: 2, target: 3, status: 'gap' },
-      { name: 'AutoCAD', level: 2, target: 3, status: 'gap' },
-      { name: 'MS Project', level: 1, target: 2, status: 'gap' },
-      { name: 'Lean Construction', level: 2, target: 3, status: 'gap' },
-    ]
-  },
-  {
-    name: 'Управление и лидерство', skills: [
-      { name: 'Управление командой', level: 3, target: 3, status: 'developed', starred: true },
-      { name: 'Управление субподрядчиками', level: 2, target: 3, status: 'gap' },
-      { name: 'Финансовый контроль проекта', level: 2, target: 3, status: 'gap' },
-      { name: 'Коммуникация с заказчиком', level: 3, target: 3, status: 'developed', starred: true },
-    ]
-  },
-  {
-    name: 'Охрана труда', skills: [
-      { name: 'Охрана труда и ТБ', level: 4, target: 4, status: 'developed' },
-    ]
-  },
-  {
-    name: 'Языки', skills: [
-      { name: 'Казахский', level: 3, target: 3, status: 'developed', badge: 'C1' },
-    ]
-  },
-  {
-    name: 'Прочее', skills: [
-      { name: 'Адаптивность', level: 2, target: 3, status: 'gap' },
-      { name: 'Развитие сотрудников', level: 1, target: 2, status: 'gap' },
-      { name: 'Командная работа', level: 2, target: 2, status: 'developed', starred: true },
-      { name: 'Принятие решений', level: 2, target: 3, status: 'gap' },
-      { name: 'Управление конфликтами', level: 2, target: 3, status: 'gap' },
-    ]
-  },
-]
+import { skillGroups, LEARNING_PLAN } from '../../data/careerPlan1'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 const prevSkillGroups = [
   {
@@ -91,6 +48,8 @@ export default function CareerPlanDetail({ plan, onBack }) {
 
   const totalSkills = skillGroups.flatMap(g => g.skills).length
   const developed = skillGroups.flatMap(g => g.skills).filter(s => s.status === 'developed').length
+  const allLearning = LEARNING_PLAN.flatMap(g => g.items)
+  const doneLearning = allLearning.filter(i => i.status === 'done').length
 
   if (plan.expired) return <CompletedPlanView plan={plan} onBack={onBack} />
   if (plan.noData)  return <AwaitingAssessmentView plan={plan} onBack={onBack} />
@@ -98,7 +57,7 @@ export default function CareerPlanDetail({ plan, onBack }) {
   return (
     <div style={{ padding: '0 0 40px' }}>
       <div style={{ background: '#fff', borderBottom: '1px solid #e8edf2', padding: '16px 32px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Мои планы</button>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Моё развитие</button>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -107,9 +66,15 @@ export default function CareerPlanDetail({ plan, onBack }) {
             </div>
             <div style={{ fontSize: 13, color: '#7a8fa0', marginTop: 4 }}>{plan.dept} · Последнее изменение: недавно</div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <ProgressCircle value={developed} total={totalSkills} />
-            <div style={{ fontSize: 11, color: '#7a8fa0', marginTop: 4 }}>Прогресс навыков</div>
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <ProgressCircle value={developed} total={totalSkills} color="#4361ee" />
+              <div style={{ fontSize: 11, color: '#7a8fa0', marginTop: 4 }}>Навыки</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <ProgressCircle value={doneLearning} total={allLearning.length} color="#059669" />
+              <div style={{ fontSize: 11, color: '#7a8fa0', marginTop: 4 }}>Обучение</div>
+            </div>
           </div>
         </div>
 
@@ -167,7 +132,7 @@ function AwaitingAssessmentView({ plan, onBack }) {
   return (
     <div style={{ padding: '0 0 40px' }}>
       <div style={{ background: '#fff', borderBottom: '1px solid #e8edf2', padding: '16px 32px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Мои планы</button>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Моё развитие</button>
         <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>{plan.title}</h1>
         <div style={{ fontSize: 13, color: '#7a8fa0' }}>{plan.dept}</div>
       </div>
@@ -208,7 +173,7 @@ function CompletedPlanView({ plan, onBack }) {
   return (
     <div style={{ padding: '0 0 40px' }}>
       <div style={{ background: '#fff', borderBottom: '1px solid #e8edf2', padding: '16px 32px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Мои планы</button>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Моё развитие</button>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -289,33 +254,6 @@ function CompletedPlanView({ plan, onBack }) {
     </div>
   )
 }
-
-const LEARNING_PLAN = [
-  {
-    category: 'Обязательные курсы',
-    items: [
-      { title: 'Управление строительным проектом: уровень Foreman C', type: 'Курс', duration: '16 ч', status: 'in-progress', progress: 60, due: '31 Авг 2026', provider: 'BI University' },
-      { title: 'Нормативная база строительства РК (обновление 2025)', type: 'Курс', duration: '8 ч', status: 'done', progress: 100, due: '01 Янв 2026', provider: 'BI University' },
-      { title: 'Охрана труда и ТБ — переаттестация', type: 'Сертификат', duration: '4 ч', status: 'done', progress: 100, due: '01 Фев 2026', provider: 'Buildex Training Center' },
-      { title: 'BIM-технологии: Revit для прорабов', type: 'Курс', duration: '24 ч', status: 'not-started', progress: 0, due: '01 Окт 2026', provider: 'BILIM' },
-    ],
-  },
-  {
-    category: 'Рекомендуемые курсы',
-    items: [
-      { title: 'Lean Construction: инструменты и практика', type: 'Курс', duration: '12 ч', status: 'in-progress', progress: 30, due: '31 Июл 2026', provider: 'Buildex Training Center' },
-      { title: 'Управление субподрядчиками и договорная работа', type: 'Курс', duration: '10 ч', status: 'not-started', progress: 0, due: '01 Ноя 2026', provider: 'BI University' },
-      { title: 'MS Project: планирование строительных работ', type: 'Курс', duration: '8 ч', status: 'not-started', progress: 0, due: '01 Дек 2026', provider: 'BILIM' },
-    ],
-  },
-  {
-    category: 'Сертификаты для повышения',
-    items: [
-      { title: 'Удостоверение Foreman C — аттестация BI Group', type: 'Сертификат', duration: '—', status: 'not-started', progress: 0, due: '06 Фев 2027', provider: 'BI Group HR', mandatory: true },
-      { title: 'Казахский язык — уровень B2', type: 'Сертификат', duration: '—', status: 'done', progress: 100, due: '12 Мар 2025', provider: 'Казтест', mandatory: true },
-    ],
-  },
-]
 
 const STATUS_META = {
   'done':        { label: 'Пройдено',    color: '#059669', bg: '#d1fae5' },
@@ -406,7 +344,7 @@ function LearningPlanTab() {
 }
 
 function SkillRow({ skill }) {
-  const [deadline, setDeadline] = useState(null)
+  const [deadline, setDeadline] = useLocalStorage(`skill:deadline:${skill.name}`, null)
   const [picking, setPicking] = useState(false)
   const [tempDate, setTempDate] = useState('')
 
@@ -533,13 +471,13 @@ function LevelBar({ level, max = 4 }) {
   )
 }
 
-function ProgressCircle({ value, total }) {
+function ProgressCircle({ value, total, color = '#4361ee' }) {
   const pct = total ? (value / total) * 100 : 0
   const r = 28, circ = 2 * Math.PI * r, offset = circ - (pct / 100) * circ
   return (
     <svg width="70" height="70" viewBox="0 0 70 70">
       <circle cx="35" cy="35" r={r} fill="none" stroke="#f0f2f8" strokeWidth="6" />
-      <circle cx="35" cy="35" r={r} fill="none" stroke="#4361ee" strokeWidth="6"
+      <circle cx="35" cy="35" r={r} fill="none" stroke={color} strokeWidth="6"
         strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 35 35)" />
       <text x="35" y="39" textAnchor="middle" fontSize="12" fontWeight="700" fill="#0f1923">{value}/{total}</text>
     </svg>
