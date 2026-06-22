@@ -277,7 +277,7 @@ export default function CareerMap() {
       </div>
 
       {/* Карта */}
-      <div style={{ background: '#f8f9fc', borderRadius: 14, border: '1px solid #e8edf2', minHeight: 420, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, overflow: 'hidden' }}>
+      <div style={{ background: '#f8f9fc', borderRadius: 14, border: '1px solid #e8edf2', height: 'calc(100vh - 310px)', minHeight: 420, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', bottom: 16, left: 16 }}>
           <div style={{ fontSize: 11, color: '#9aafbd', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>ads_click</span> Нажмите на карточку для подробностей
