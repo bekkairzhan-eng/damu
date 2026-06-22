@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useProfile } from '../ProfileContext'
 
 const NAV = [
   { to: '/plans',     label: 'Моё развитие'   },
@@ -68,6 +69,7 @@ const LANGUAGES = [
 ]
 
 export default function TopNav() {
+  const { isDark, toggleDark } = useProfile()
   const [notifOpen, setNotifOpen] = useState(false)
   const [newsNotif, setNewsNotif] = useState(true)
   const [notifications, setNotifications] = useState(NOTIFICATIONS)
@@ -103,7 +105,7 @@ export default function TopNav() {
     }}>
       {/* Лого */}
       <NavLink to="/dashboard" style={{ marginRight: 28, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <img src="/BI Damu.png" alt="BI DAMU" style={{ height: 32, objectFit: 'contain' }} />
+        <img src="/BI Damu.png" alt="BI DAMU" className="invert-back" style={{ height: 32, objectFit: 'contain' }} />
       </NavLink>
 
       {/* Навигация */}
@@ -258,6 +260,17 @@ export default function TopNav() {
           )}
         </div>
 
+        {/* Тема */}
+        <button
+          onClick={toggleDark}
+          title={isDark ? 'Светлая тема' : 'Тёмная тема'}
+          style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
+            {isDark ? 'light_mode' : 'dark_mode'}
+          </span>
+        </button>
+
         {/* Apps */}
         <button style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>apps</span>
@@ -265,6 +278,7 @@ export default function TopNav() {
 
         {/* Аватар */}
         <img src="/avatar1.jpeg" alt="Каиржан Бектембаев"
+          className="invert-back"
           style={{ width: 34, height: 34, borderRadius: '50%', marginLeft: 6, objectFit: 'cover', cursor: 'pointer', border: '2px solid #4ade80', flexShrink: 0 }}
         />
       </div>
