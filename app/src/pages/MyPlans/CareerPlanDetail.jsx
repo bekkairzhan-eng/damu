@@ -180,7 +180,7 @@ function CompletedPlanView({ plan, onBack }) {
               <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f1923' }}>{plan.title}</h1>
               <span style={{ fontSize: 11, background: '#d1fae5', color: '#059669', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>✓ Завершён</span>
             </div>
-            <div style={{ fontSize: 13, color: '#7a8fa0' }}>{plan.dept} · Foreman A → Foreman B · Срок: {plan.deadline}</div>
+            <div style={{ fontSize: 13, color: '#7a8fa0' }}>{plan.dept} · {plan.from ?? 'Foreman C'} → {plan.to ?? 'Foreman B'} · Срок: {plan.deadline}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: '#059669' }}>{plan.progress}/{plan.total}</div>

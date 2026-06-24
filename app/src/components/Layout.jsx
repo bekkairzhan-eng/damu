@@ -9,13 +9,13 @@ const NAV_ITEMS = [
 ]
 
 const SOON_ITEMS = [
-  { label: 'Ассесмент',  icon: 'fact_check'   },
-  { label: 'Мой ментор', icon: 'support_agent' },
+  { label: 'Аттестация',    icon: 'fact_check'   },
+  { label: 'Мой наставник', icon: 'support_agent' },
 ]
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false)
-  const W = collapsed ? 64 : 220
+  const W = collapsed ? 64 : 244
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
