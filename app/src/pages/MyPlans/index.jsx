@@ -14,7 +14,7 @@ export default function MyPlans() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const location = useLocation()
-  const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman C')
+  const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
 
   const activePlan = { id: 1, title: `Стать ${savedGoal}`, from: 'Foreman B', dept: 'BI Development', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true }
   const recPlans = [activePlan, ...BASE_PLANS]

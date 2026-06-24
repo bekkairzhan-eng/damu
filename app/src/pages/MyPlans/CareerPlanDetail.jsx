@@ -411,7 +411,7 @@ function SkillRow({ skill }) {
 }
 
 function EligibilityTab() {
-  const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman C')
+  const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
   const totalSkills = skillGroups.flatMap(g => g.skills).length
   const developedSkills = skillGroups.flatMap(g => g.skills).filter(s => s.status === 'developed').length
   const skillPct = Math.round((developedSkills / totalSkills) * 100)

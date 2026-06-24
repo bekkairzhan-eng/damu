@@ -1,13 +1,6 @@
 import { plan1TotalSkills, plan1DevelopedSkills, plan1TotalLearning, plan1DoneLearning } from '../../data/careerPlan1'
 
-const plans = [
-  {
-    id: 1, title: 'Стать Foreman C',
-    from: 'Foreman B', to: 'Foreman C', dept: 'BI Development',
-    skills: { done: plan1DevelopedSkills, total: plan1TotalSkills },
-    learning: { done: plan1DoneLearning, total: plan1TotalLearning },
-    deadline: '06 Фев 2027', icon: null,
-  },
+const BASE_PLANS = [
   {
     id: 2, title: 'План развития на основе оценки',
     from: 'Foreman B', dept: 'BI Development',
@@ -15,7 +8,7 @@ const plans = [
   },
   {
     id: 3, title: 'Предыдущий карьерный план',
-    from: 'Foreman A', dept: 'BI Development',
+    from: 'Foreman C', dept: 'BI Development',
     progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, icon: 'description',
   },
 ]
@@ -44,8 +37,18 @@ import { useLocalStorage } from '../../hooks/useLocalStorage'
 export default function MyDashboard() {
   const navigate = useNavigate()
   const { overallScore } = useProfile()
+  const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
   const [pending, setPending] = useLocalStorage('dashboard:pending', INITIAL_PENDING)
   const [confirmed, setConfirmed] = useLocalStorage('dashboard:confirmed', [])
+
+  const activePlan = {
+    id: 1, title: `Стать ${savedGoal}`,
+    from: 'Foreman B', to: savedGoal, dept: 'BI Development',
+    skills: { done: plan1DevelopedSkills, total: plan1TotalSkills },
+    learning: { done: plan1DoneLearning, total: plan1TotalLearning },
+    deadline: '06 Фев 2027', icon: null,
+  }
+  const plans = [activePlan, ...BASE_PLANS]
 
   function confirm(skill) {
     setConfirmed(prev => [...prev, skill])

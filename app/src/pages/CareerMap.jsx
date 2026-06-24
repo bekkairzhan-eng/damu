@@ -5,19 +5,19 @@ import { plan1DevelopedSkills, plan1TotalSkills, plan1DoneLearning, plan1TotalLe
 
 const STEP = ['Выбрать цель', 'Установить срок', 'Работать по плану', 'Запросить аттестацию']
 const CURRENT_POSITION = 'Foreman B'
-const PAST_POSITIONS = new Set(['Foreman A', 'Foreman B'])
+const PAST_POSITIONS = new Set(['Foreman C', 'Foreman B'])
 
 const JOB_FUNCTIONS = {
-  'Полевой состав': ['Foreman A', 'Foreman B', 'Foreman C'],
+  'Полевой состав': ['Foreman C', 'Foreman B', 'Foreman A'],
   'Управление участком': ['Site Manager', 'Deputy Project Manager'],
   'Техническое руководство': ['ГИП', 'Главный инженер дирекции'],
   'Управление проектом': ['Project Manager'],
 }
 
 const CAREER_GRAPH = {
-  'Foreman A': ['Foreman B'],
-  'Foreman B': ['Foreman C'],
-  'Foreman C': ['Site Manager', 'ГИП'],
+  'Foreman C': ['Foreman B'],
+  'Foreman B': ['Foreman A'],
+  'Foreman A': ['Site Manager', 'ГИП'],
   'Site Manager': ['Deputy Project Manager'],
   'ГИП': ['Главный инженер дирекции'],
   'Deputy Project Manager': ['Project Manager'],
@@ -25,12 +25,12 @@ const CAREER_GRAPH = {
   'Project Manager': [],
 }
 
-const POSITION_SEQUENCE = ['Foreman A', 'Foreman B', 'Foreman C', 'Site Manager', 'Deputy Project Manager', 'Project Manager']
+const POSITION_SEQUENCE = ['Foreman C', 'Foreman B', 'Foreman A', 'Site Manager', 'Deputy Project Manager', 'Project Manager']
 
 const POSITION_DATA = {
-  'Foreman A': { grade: 'A1', skills: { done: 8, total: 12 }, learning: { done: 5, total: 8 } },
+  'Foreman C': { grade: 'A1', skills: { done: 8, total: 10 }, learning: { done: 5, total: 6 } },
   'Foreman B': { grade: 'A2', skills: { done: 14, total: 16 }, learning: { done: 7, total: 9 } },
-  'Foreman C': { grade: 'A3', skills: { done: plan1DevelopedSkills, total: plan1TotalSkills }, learning: { done: plan1DoneLearning, total: plan1TotalLearning } },
+  'Foreman A': { grade: 'A3', skills: { done: plan1DevelopedSkills, total: plan1TotalSkills }, learning: { done: plan1DoneLearning, total: plan1TotalLearning } },
   'Site Manager': { grade: 'B1', skills: { done: 3, total: 20 }, learning: { done: 1, total: 12 } },
   'Deputy Project Manager': { grade: 'B2', skills: { done: 2, total: 18 }, learning: { done: 0, total: 10 } },
   'Project Manager': { grade: 'C1', skills: { done: 0, total: 24 }, learning: { done: 0, total: 14 } },
@@ -39,9 +39,9 @@ const POSITION_DATA = {
 }
 
 const POSITION_DETAILS = {
-  'Foreman A': { description: 'Начальный уровень прораба. Отвечает за небольшой участок работ под руководством старшего прораба.', responsibilities: ['Контроль качества работ на участке', 'Координация рабочих бригад', 'Ведение журнала производства работ', 'Соблюдение техники безопасности'], salary: '250 000 – 350 000 ₸', experience: '1–2 года' },
+  'Foreman C': { description: 'Начальный уровень прораба. Отвечает за небольшой участок работ под руководством старшего прораба.', responsibilities: ['Контроль качества работ на участке', 'Координация рабочих бригад', 'Ведение журнала производства работ', 'Соблюдение техники безопасности'], salary: '250 000 – 350 000 ₸', experience: '1–2 года' },
   'Foreman B': { description: 'Самостоятельно ведёт строительный участок средней сложности. Взаимодействует с субподрядчиками и контролирует соблюдение норм.', responsibilities: ['Управление участком до 50 человек', 'Работа с проектной документацией', 'Контроль сроков и бюджета участка', 'Взаимодействие с субподрядчиками'], salary: '400 000 – 550 000 ₸', experience: '3–5 лет' },
-  'Foreman C': { description: 'Старший прораб, ведущий крупные и сложные объекты. Наставник для младших прорабов, участвует в планировании проекта.', responsibilities: ['Управление несколькими участками', 'Наставничество Foreman A и B', 'Участие в тендерах и планировании', 'Взаимодействие с проектным менеджером'], salary: '600 000 – 850 000 ₸', experience: '5–8 лет' },
+  'Foreman A': { description: 'Старший прораб, ведущий крупные и сложные объекты. Наставник для Foreman C и B, участвует в планировании проекта.', responsibilities: ['Управление несколькими участками', 'Наставничество Foreman C и B', 'Участие в тендерах и планировании', 'Взаимодействие с проектным менеджером'], salary: '600 000 – 850 000 ₸', experience: '5–8 лет' },
   'Site Manager': { description: 'Руководит всем строительным объектом целиком, координирует всех прорабов и субподрядчиков.', responsibilities: ['Общее управление объектом', 'Координация всех прорабов', 'Отчётность перед руководством', 'Контроль бюджета объекта'], salary: '900 000 – 1 300 000 ₸', experience: '8–12 лет' },
   'Deputy Project Manager': { description: 'Помощник руководителя проекта, отвечает за операционную часть управления несколькими объектами.', responsibilities: ['Операционное управление проектами', 'Поддержка руководителя проекта', 'Работа с рисками и изменениями', 'Координация между объектами'], salary: '1 200 000 – 1 700 000 ₸', experience: '10–15 лет' },
   'Project Manager': { description: 'Полная ответственность за реализацию крупного строительного проекта от начала до сдачи.', responsibilities: ['Стратегическое управление проектом', 'Работа с заказчиком и инвесторами', 'Формирование и развитие команды', 'P&L проекта'], salary: '2 000 000 – 3 500 000 ₸', experience: '15+ лет' },
@@ -84,12 +84,12 @@ function computeLayout(paths) {
   return { prefix, branches, suffix }
 }
 
-const GOAL_TO_PLAN_ID = { 'Foreman C': 1 }
+const GOAL_TO_PLAN_ID = { 'Foreman A': 1 }
 
 // Позиции, которые можно установить как карьерную цель с текущей должности
 const NEXT_GOAL_OPTIONS = {
-  'Foreman B': new Set(['Foreman C', 'ГИП']),
-  'Foreman C': new Set(['Site Manager', 'ГИП']),
+  'Foreman B': new Set(['Foreman A']),
+  'Foreman A': new Set(['Site Manager', 'ГИП']),
   'Site Manager': new Set(['Deputy Project Manager']),
   'Deputy Project Manager': new Set(['Project Manager']),
   'ГИП': new Set(['Главный инженер дирекции']),
@@ -98,7 +98,7 @@ const NEXT_GOAL_OPTIONS = {
 
 const TOUR_STEPS = [
   { id: 'here', title: 'Вы здесь', body: 'Это ваша текущая должность. Карьерный путь начинается отсюда.', anchor: 'card-current', position: 'bottom' },
-  { id: 'target', title: 'Ваша цель', body: 'Здесь отображается должность, к которой вы стремитесь. Вы уже выбрали Foreman C.', anchor: 'card-target', position: 'bottom' },
+  { id: 'target', title: 'Ваша цель', body: 'Здесь отображается должность, к которой вы стремитесь. Вы уже выбрали Foreman A.', anchor: 'card-target', position: 'bottom' },
   { id: 'build', title: 'Постройте путь', body: 'Выберите «От» и «До» — карта покажет все возможные маршруты, включая альтернативные ветки.', anchor: 'build-path', position: 'bottom' },
   { id: 'suggestions', title: 'Карьерные подсказки', body: 'Включите, чтобы увидеть самые популярные переходы с вашей текущей должности.', anchor: 'suggestions-toggle', position: 'bottom' },
   { id: 'zoom', title: 'Масштаб', body: 'Используйте кнопки + и − для изменения масштаба карты.', anchor: 'zoom-btns', position: 'top' },
@@ -108,7 +108,7 @@ export default function CareerMap() {
   const navigate = useNavigate()
 
   // Сохранённая цель юзера (для дефолтного вида)
-  const [savedGoal, setSavedGoal] = useLocalStorage('careermap:goal', 'Foreman C')
+  const [savedGoal, setSavedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
 
   // Режим "Построить путь" — не персистируется, сбрасывается при загрузке
   const [buildFrom, setBuildFrom] = useState(CURRENT_POSITION)
