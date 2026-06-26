@@ -122,7 +122,7 @@ export default function CareerMap() {
   const [suggestions, setSuggestions] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
   const [confirmGoal, setConfirmGoal] = useState(null)
-  const [zoom, setZoom] = useLocalStorage('careermap:zoom', 1)
+  const [zoom, setZoom] = useLocalStorage('careermap:zoom', 1.2)
   const [tourSeen, setTourSeen] = useLocalStorage('careermap:tour-seen', false)
   const [tourStep, setTourStep] = useState(null)
   const anchors = useRef({})
@@ -354,37 +354,39 @@ export default function CareerMap() {
               )}
             </div>
           ) : (
-            /* ─── Дефолтный вид: Foreman A → Foreman B → Foreman C (по центру) ─── */
+            /* ─── Дефолтный вид: Foreman C (прошлое) → Foreman B (текущий) → Foreman A (цель) ─── */
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px minmax(0,1fr)', alignItems: 'center', width: '100%' }}>
-                {/* Левая часть */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                  {prevPos && (
-                    <>
-                      <MapCard title={prevPos} grade={prevData.grade} past onDetails={() => setSelectedCard(prevPos)} />
-                      <Arrow />
-                    </>
-                  )}
-                  <div ref={el => anchors.current['card-current'] = el} style={{ position: 'relative', zIndex: activeTour?.anchor === 'card-current' ? 450 : 1 }}>
-                    <TourTooltip active={activeTour?.anchor === 'card-current'} step={activeTour} {...tourProps} position="bottom" />
-                    <MapCard title={CURRENT_POSITION} grade={curData.grade} current date="Повышен 01 Янв 2024"
-                      skillsDone={curData.skills.total} skillsTotal={curData.skills.total}
-                      learningDone={curData.learning.total} learningTotal={curData.learning.total}
-                      onDetails={() => setSelectedCard(CURRENT_POSITION)} />
-                  </div>
-                  <Arrow />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+                {/* Прошлая должность */}
+                {prevPos && (
+                  <>
+                    <MapCard title={prevPos} grade={prevData.grade} past date="Повышен 15 Май 2022"
+                      skillsDone={prevData.skills.total} skillsTotal={prevData.skills.total}
+                      learningDone={prevData.learning.total} learningTotal={prevData.learning.total}
+                      onDetails={() => setSelectedCard(prevPos)} />
+                    <Arrow />
+                  </>
+                )}
+
+                {/* Текущая должность */}
+                <div ref={el => anchors.current['card-current'] = el} style={{ position: 'relative', zIndex: activeTour?.anchor === 'card-current' ? 450 : 1 }}>
+                  <TourTooltip active={activeTour?.anchor === 'card-current'} step={activeTour} {...tourProps} position="bottom" />
+                  <MapCard title={CURRENT_POSITION} grade={curData.grade} current date="Повышен 01 Янв 2024"
+                    skillsDone={curData.skills.total} skillsTotal={curData.skills.total}
+                    learningDone={curData.learning.total} learningTotal={curData.learning.total}
+                    onDetails={() => setSelectedCard(CURRENT_POSITION)} />
                 </div>
 
-                {/* Центр: цель */}
-                <div ref={el => anchors.current['card-target'] = el} style={{ display: 'flex', justifyContent: 'center', position: 'relative', zIndex: activeTour?.anchor === 'card-target' ? 450 : 1 }}>
+                <Arrow />
+
+                {/* Цель */}
+                <div ref={el => anchors.current['card-target'] = el} style={{ position: 'relative', zIndex: activeTour?.anchor === 'card-target' ? 450 : 1 }}>
                   <TourTooltip active={activeTour?.anchor === 'card-target'} step={activeTour} {...tourProps} position="bottom" />
                   <MapCard title={savedGoal} grade={goalData.grade} target deadline="06 Фев 2027"
                     skillsDone={goalData.skills.done} skillsTotal={goalData.skills.total}
                     learningDone={goalData.learning.done} learningTotal={goalData.learning.total}
                     onDetails={() => setSelectedCard(savedGoal)} />
                 </div>
-
-                <div />
               </div>
 
               <button
@@ -536,13 +538,16 @@ function TourTooltip({ active, step, tourStep, total, onNext, onSkip, onShowLate
 function MapCard({ title, grade, current, target, past, date, deadline, skillsDone, skillsTotal, learningDone, learningTotal, onDetails, onSetGoal, isGoal }) {
   const skillPct = skillsTotal ? Math.round((skillsDone / skillsTotal) * 100) : 0
   const learnPct = learningTotal ? Math.round((learningDone / learningTotal) * 100) : 0
-  const headerBg = current ? '#4361ee' : target ? '#3d9970' : null
+  const headerBg = current ? '#4361ee' : target ? '#3d9970' : past ? '#9aafbd' : null
   const width = (current || target) ? 300 : 220
   return (
-    <div style={{ width, background: '#fff', borderRadius: 12, overflow: 'hidden', border: current ? '2px solid #4361ee' : target ? '2px solid #3d9970' : '1px solid #e8edf2', boxShadow: current || target ? '0 4px 20px rgba(67,97,238,0.18)' : '0 1px 4px rgba(0,0,0,0.05)', opacity: past ? 0.55 : 1 }}>
-      {(current || target) && (
-        <div style={{ background: headerBg, padding: '6px 14px' }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{current ? 'ВЫ ЗДЕСЬ' : 'ВАША СЛЕДУЮЩАЯ ЦЕЛЬ'}</span>
+    <div style={{ width, background: '#fff', borderRadius: 12, overflow: 'hidden', border: current ? '2px solid #4361ee' : target ? '2px solid #3d9970' : '1px solid #e8edf2', boxShadow: current || target ? '0 4px 20px rgba(67,97,238,0.18)' : '0 1px 4px rgba(0,0,0,0.05)', opacity: past ? 0.75 : 1 }}>
+      {(current || target || past) && (
+        <div style={{ background: headerBg, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 5 }}>
+          {past && <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#fff' }}>check_circle</span>}
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            {current ? 'ВЫ ЗДЕСЬ' : target ? 'ВАША СЛЕДУЮЩАЯ ЦЕЛЬ' : 'ПРОЙДЕНО'}
+          </span>
         </div>
       )}
       <div style={{ padding: '12px 14px' }}>
