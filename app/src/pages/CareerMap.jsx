@@ -399,32 +399,43 @@ export default function CareerMap() {
       </div>
 
       {/* Карьерные подсказки */}
-      {suggestions && (
-        <div style={{ marginTop: 16, background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#f59e0b' }}>lightbulb</span>
-            Популярные переходы с {CURRENT_POSITION}
-          </div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {[
-              { to: 'Foreman C', pct: 68, desc: 'Самый частый следующий шаг' },
-              { to: 'Site Manager', pct: 22, desc: 'Для тех, кто пропускает уровень' },
-              { to: 'Project Manager', pct: 10, desc: 'Переход в управление' },
-            ].map(s => (
-              <div key={s.to} onClick={() => { setBuildFrom(CURRENT_POSITION); setBuildTo(s.to) }} style={{ flex: 1, minWidth: 180, padding: '14px 16px', borderRadius: 10, border: `1px solid ${buildTo === s.to ? '#4361ee' : '#e8edf2'}`, cursor: 'pointer', background: buildTo === s.to ? '#f0f4ff' : '#fafbff' }}>
-                <div style={{ fontWeight: 600, fontSize: 13, color: '#0f1923', marginBottom: 4 }}>{s.to}</div>
-                <div style={{ fontSize: 11, color: '#7a8fa0', marginBottom: 8 }}>{s.desc}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ flex: 1, height: 4, background: '#e0e6ef', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${s.pct}%`, background: '#4361ee', borderRadius: 2 }} />
+      {suggestions && (() => {
+        const SUGGESTIONS = [
+          { to: 'Foreman A',   desc: 'Прямой следующий шаг' },
+          { to: 'Site Manager', desc: 'Управленческая ветка (через Foreman A)' },
+          { to: 'ГИП',         desc: 'Техническая ветка (через Foreman A)' },
+        ].map(s => {
+          const d = POSITION_DATA[s.to] || { skills: { done: 0, total: 1 }, learning: { done: 0, total: 1 } }
+          const skillPct = d.skills.total ? Math.round((d.skills.done / d.skills.total) * 100) : 0
+          const learnPct = d.learning.total ? Math.round((d.learning.done / d.learning.total) * 100) : 0
+          const pct = Math.round((skillPct + learnPct) / 2)
+          return { ...s, pct }
+        })
+        return (
+          <div style={{ marginTop: 16, background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#f59e0b' }}>lightbulb</span>
+              Куда можно перейти с {CURRENT_POSITION}
+            </div>
+            <div style={{ fontSize: 12, color: '#9aafbd', marginBottom: 14 }}>% соответствия — сколько требований вы уже закрыли</div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {SUGGESTIONS.map(s => (
+                <div key={s.to} onClick={() => { setBuildFrom(CURRENT_POSITION); setBuildTo(s.to) }}
+                  style={{ flex: 1, minWidth: 180, padding: '14px 16px', borderRadius: 10, border: `1px solid ${buildTo === s.to ? '#4361ee' : '#e8edf2'}`, cursor: 'pointer', background: buildTo === s.to ? '#f0f4ff' : '#fafbff' }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: '#0f1923', marginBottom: 4 }}>{s.to}</div>
+                  <div style={{ fontSize: 11, color: '#7a8fa0', marginBottom: 8 }}>{s.desc}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, height: 4, background: '#e0e6ef', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${s.pct}%`, background: s.pct >= 70 ? '#22c55e' : s.pct >= 40 ? '#f59e0b' : '#4361ee', borderRadius: 2 }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#4a6275' }}>{s.pct}%</span>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#4361ee' }}>{s.pct}%</span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
