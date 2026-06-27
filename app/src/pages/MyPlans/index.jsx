@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import CareerPlanDetail from './CareerPlanDetail'
 
 const BASE_PLANS = [
@@ -14,6 +15,7 @@ export default function MyPlans() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const location = useLocation()
+  const { isMobile } = useBreakpoint()
   const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
 
   const activePlan = { id: 1, title: `Стать ${savedGoal}`, from: 'Foreman B', dept: 'BI Development', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true }
@@ -29,9 +31,9 @@ export default function MyPlans() {
   if (selectedPlan) return <CareerPlanDetail plan={selectedPlan} onBack={() => setSelectedPlan(null)} />
 
   return (
-    <div style={{ padding: '28px 32px' }}>
-      <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Моё развитие</h1>
-      <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 28 }}>Станьте профессионалом, которым вы всегда хотели быть</p>
+    <div style={{ padding: isMobile ? 16 : '28px 32px' }}>
+      <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Моё развитие</h1>
+      {!isMobile && <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 28 }}>Станьте профессионалом, которым вы всегда хотели быть</p>}
 
       <Section title="Рекомендовано для роста" subtitle="Планы, рекомендованные вам для дальнейшего развития">
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -95,7 +97,7 @@ function PlanCard({ plan, onClick }) {
   const pct = plan.noData ? 0 : Math.round((plan.progress / plan.total) * 100)
   return (
     <div onClick={onClick} style={{
-      minWidth: 220, flex: 1, maxWidth: 300, border: '1px solid #e8edf2', borderRadius: 12, padding: 16,
+      minWidth: 220, flex: 1, maxWidth: '100%', border: '1px solid #e8edf2', borderRadius: 12, padding: 16,
       background: '#fff', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
       transition: 'box-shadow 0.15s',
     }}>

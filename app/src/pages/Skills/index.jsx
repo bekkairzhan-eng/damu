@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import SkillDetail from './SkillDetail'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 
 const CATEGORIES = {
   'Строительные практики': ['Управление строительной площадкой', 'Контроль качества строительства', 'Нормативная база строительства', 'Охрана труда и ТБ', 'Проектная документация'],
@@ -24,6 +25,7 @@ export default function Skills() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('Все навыки')
   const [selectedSkill, setSelectedSkill] = useState(null)
+  const { isMobile } = useBreakpoint()
 
   if (selectedSkill) return <SkillDetail skill={selectedSkill} onBack={() => setSelectedSkill(null)} />
 
@@ -32,25 +34,27 @@ export default function Skills() {
   }
 
   return (
-    <div style={{ padding: '24px 32px' }}>
-      <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Все навыки</h1>
-      <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 20 }}>Станьте профессионалом, которым вы всегда хотели быть</p>
+    <div style={{ padding: isMobile ? 16 : '24px 32px' }}>
+      <h1 style={{ fontSize: isMobile ? 20 : 26, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>Все навыки</h1>
+      {!isMobile && <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 20 }}>Станьте профессионалом, которым вы всегда хотели быть</p>}
 
       <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Введите название навыка" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #d0d7e5', fontSize: 14, outline: 'none', marginBottom: 14 }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {['Все навыки', 'Избранные', 'Рекомендуемые'].map(f => (
-              <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 16px', borderRadius: 20, border: 'none', fontSize: 13, fontWeight: filter === f ? 600 : 400, background: filter === f ? '#0f1923' : '#f0f2f8', color: filter === f ? '#fff' : '#4a6275', cursor: 'pointer' }}>{f}</button>
+              <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 14px', borderRadius: 20, border: 'none', fontSize: isMobile ? 12 : 13, fontWeight: filter === f ? 600 : 400, background: filter === f ? '#0f1923' : '#f0f2f8', color: filter === f ? '#fff' : '#4a6275', cursor: 'pointer' }}>{f}</button>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#7a8fa0' }}>Древовидный вид</span>
-            <div style={{ width: 36, height: 20, borderRadius: 10, background: '#4361ee', position: 'relative', cursor: 'pointer' }}>
-              <div style={{ position: 'absolute', right: 2, top: 2, width: 16, height: 16, borderRadius: '50%', background: '#fff' }} />
+          {!isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 12, color: '#7a8fa0' }}>Древовидный вид</span>
+              <div style={{ width: 36, height: 20, borderRadius: 10, background: '#4361ee', position: 'relative', cursor: 'pointer' }}>
+                <div style={{ position: 'absolute', right: 2, top: 2, width: 16, height: 16, borderRadius: '50%', background: '#fff' }} />
+              </div>
+              <span style={{ fontSize: 12, color: '#7a8fa0' }}>Сортировка: А–Я</span>
             </div>
-            <span style={{ fontSize: 12, color: '#7a8fa0' }}>Сортировка: А–Я</span>
-          </div>
+          )}
         </div>
       </div>
 

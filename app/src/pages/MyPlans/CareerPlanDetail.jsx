@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { skillGroups, LEARNING_PLAN } from '../../data/careerPlan1'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 
 const prevSkillGroups = [
   {
@@ -45,6 +46,7 @@ const TABS = ['Требования к навыкам', 'План обучени
 export default function CareerPlanDetail({ plan, onBack }) {
   const [tab, setTab] = useState('Требования к навыкам')
   const [showGapsOnly, setShowGapsOnly] = useState(false)
+  const { isMobile } = useBreakpoint()
 
   const totalSkills = skillGroups.flatMap(g => g.skills).length
   const developed = skillGroups.flatMap(g => g.skills).filter(s => s.status === 'developed').length
@@ -56,13 +58,13 @@ export default function CareerPlanDetail({ plan, onBack }) {
 
   return (
     <div style={{ padding: '0 0 40px' }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid #e8edf2', padding: '16px 32px' }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid #e8edf2', padding: isMobile ? '12px 16px' : '16px 32px' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Моё развитие</button>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f1923' }}>Карьерный план — {plan.title}</h1>
-              <span className="material-symbols-outlined" style={{ color: '#cdd5e0', fontSize: 20 }}>push_pin</span>
+              <h1 style={{ fontSize: isMobile ? 16 : 20, fontWeight: 700, color: '#0f1923' }}>Карьерный план — {plan.title}</h1>
+              {!isMobile && <span className="material-symbols-outlined" style={{ color: '#cdd5e0', fontSize: 20 }}>push_pin</span>}
             </div>
             <div style={{ fontSize: 13, color: '#7a8fa0', marginTop: 4 }}>{plan.dept} · Последнее изменение: недавно</div>
           </div>
@@ -78,19 +80,19 @@ export default function CareerPlanDetail({ plan, onBack }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 0, marginTop: 16 }}>
+        <div style={{ display: 'flex', gap: 0, marginTop: 16, overflowX: 'auto' }}>
           {TABS.map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
-              padding: '10px 20px', background: 'none', border: 'none',
+              padding: isMobile ? '8px 12px' : '10px 20px', background: 'none', border: 'none',
               borderBottom: tab === t ? '2.5px solid #0f1923' : '2.5px solid transparent',
-              fontSize: 13.5, fontWeight: tab === t ? 600 : 400,
-              color: tab === t ? '#0f1923' : '#7a8fa0', cursor: 'pointer',
+              fontSize: isMobile ? 12 : 13.5, fontWeight: tab === t ? 600 : 400,
+              color: tab === t ? '#0f1923' : '#7a8fa0', cursor: 'pointer', whiteSpace: 'nowrap',
             }}>{t}</button>
           ))}
         </div>
       </div>
 
-      <div style={{ padding: '20px 32px' }}>
+      <div style={{ padding: isMobile ? '16px' : '20px 32px' }}>
         <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#92400e', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="material-symbols-outlined" style={{ fontSize: 18, flexShrink: 0 }}>warning</span> Содержимое вашего плана было обновлено. Пожалуйста, ознакомьтесь с изменениями.
           <button style={{ marginLeft: 'auto', padding: '4px 12px', borderRadius: 6, border: '1px solid #fcd34d', background: '#fff', color: '#92400e', fontSize: 12, cursor: 'pointer' }}>Посмотреть изменения</button>
@@ -189,9 +191,9 @@ function CompletedPlanView({ plan, onBack }) {
         </div>
       </div>
 
-      <div style={{ padding: '20px 32px' }}>
+      <div style={{ padding: isMobile ? '16px' : '20px 32px' }}>
         {/* Итоговая сводка */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
           {[
             { label: 'Навыков достигнуто', value: achieved, icon: 'my_location', color: '#059669', bg: '#d1fae5' },
             { label: 'Курсов пройдено', value: prevLearning.length, icon: 'school', color: '#4361ee', bg: '#eff6ff' },
@@ -262,6 +264,7 @@ const STATUS_META = {
 }
 
 function LearningPlanTab() {
+  const { isMobile } = useBreakpoint()
   const allItems = LEARNING_PLAN.flatMap(g => g.items)
   const done = allItems.filter(i => i.status === 'done').length
   const inProgress = allItems.filter(i => i.status === 'in-progress').length
@@ -269,7 +272,7 @@ function LearningPlanTab() {
   return (
     <div>
       {/* Сводка */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
         {[
           { label: 'Всего материалов', value: allItems.length, color: '#4361ee' },
           { label: 'Пройдено', value: done, color: '#059669' },

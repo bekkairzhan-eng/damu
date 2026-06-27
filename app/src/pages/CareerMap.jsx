@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useBreakpoint } from '../hooks/useBreakpoint'
 import { plan1DevelopedSkills, plan1TotalSkills, plan1DoneLearning, plan1TotalLearning } from '../data/careerPlan1'
 
 const STEP = ['Выбрать цель', 'Установить срок', 'Работать по плану', 'Запросить аттестацию']
@@ -9,44 +10,54 @@ const PAST_POSITIONS = new Set(['Foreman C', 'Foreman B'])
 
 const JOB_FUNCTIONS = {
   'Полевой состав': ['Foreman C', 'Foreman B', 'Foreman A'],
-  'Управление участком': ['Site Manager', 'Deputy Project Manager'],
-  'Техническое руководство': ['ГИП', 'Главный инженер дирекции'],
-  'Управление проектом': ['Project Manager'],
+  'Инженерный трек': ['Site Engineer D', 'Site Engineer C', 'Site Engineer B', 'Site Engineer A'],
+  'Управление объектом': ['Site Manager', 'Deputy Project Manager'],
+  'Управление проектом': ['Project Manager', 'Главный Инженер Управления'],
 }
 
 const CAREER_GRAPH = {
-  'Foreman C': ['Foreman B'],
-  'Foreman B': ['Foreman A'],
-  'Foreman A': ['Site Manager', 'ГИП'],
-  'Site Manager': ['Deputy Project Manager'],
-  'ГИП': ['Главный инженер дирекции'],
+  'Foreman C':              ['Foreman B'],
+  'Foreman B':              ['Foreman A', 'Site Engineer D'],
+  'Site Engineer D':        ['Site Engineer C'],
+  'Foreman A':              ['Site Engineer C', 'Site Manager'],
+  'Site Engineer C':        ['Site Engineer B'],
+  'Site Engineer B':        ['Site Engineer A'],
+  'Site Manager':           ['Deputy Project Manager'],
+  'Site Engineer A':        ['Deputy Project Manager', 'Главный Инженер Управления'],
   'Deputy Project Manager': ['Project Manager'],
-  'Главный инженер дирекции': ['Project Manager'],
-  'Project Manager': [],
+  'Project Manager':        [],
+  'Главный Инженер Управления': [],
 }
 
-const POSITION_SEQUENCE = ['Foreman C', 'Foreman B', 'Foreman A', 'Site Manager', 'Deputy Project Manager', 'Project Manager']
+// Для дефолтного вида (предыдущая → текущая → цель): линейный трек прорабов
+const POSITION_SEQUENCE = ['Foreman C', 'Foreman B', 'Foreman A']
 
 const POSITION_DATA = {
-  'Foreman C': { grade: 'A1', skills: { done: 8, total: 10 }, learning: { done: 5, total: 6 } },
-  'Foreman B': { grade: 'A2', skills: { done: 14, total: 16 }, learning: { done: 7, total: 9 } },
-  'Foreman A': { grade: 'A3', skills: { done: plan1DevelopedSkills, total: plan1TotalSkills }, learning: { done: plan1DoneLearning, total: plan1TotalLearning } },
-  'Site Manager': { grade: 'B1', skills: { done: 3, total: 20 }, learning: { done: 1, total: 12 } },
-  'Deputy Project Manager': { grade: 'B2', skills: { done: 2, total: 18 }, learning: { done: 0, total: 10 } },
-  'Project Manager': { grade: 'C1', skills: { done: 0, total: 24 }, learning: { done: 0, total: 14 } },
-  'ГИП': { grade: 'D1', skills: { done: 0, total: 22 }, learning: { done: 0, total: 11 } },
-  'Главный инженер дирекции': { grade: 'D2', skills: { done: 0, total: 26 }, learning: { done: 0, total: 13 } },
+  'Foreman C':              { grade: '13', skills: { done: 8,  total: 10 }, learning: { done: 5, total: 6  } },
+  'Foreman B':              { grade: '14', skills: { done: 14, total: 16 }, learning: { done: 7, total: 9  } },
+  'Foreman A':              { grade: '15', skills: { done: plan1DevelopedSkills, total: plan1TotalSkills }, learning: { done: plan1DoneLearning, total: plan1TotalLearning } },
+  'Site Engineer D':        { grade: '14', skills: { done: 0,  total: 18 }, learning: { done: 0, total: 10 } },
+  'Site Engineer C':        { grade: '15', skills: { done: 0,  total: 20 }, learning: { done: 0, total: 11 } },
+  'Site Engineer B':        { grade: '16', skills: { done: 0,  total: 22 }, learning: { done: 0, total: 12 } },
+  'Site Engineer A':        { grade: '17', skills: { done: 0,  total: 24 }, learning: { done: 0, total: 13 } },
+  'Site Manager':           { grade: '16', skills: { done: 3,  total: 20 }, learning: { done: 1, total: 12 } },
+  'Deputy Project Manager': { grade: '17', skills: { done: 2,  total: 18 }, learning: { done: 0, total: 10 } },
+  'Project Manager':        { grade: '19', skills: { done: 0,  total: 24 }, learning: { done: 0, total: 14 } },
+  'Главный Инженер Управления': { grade: '18', skills: { done: 0, total: 26 }, learning: { done: 0, total: 13 } },
 }
 
 const POSITION_DETAILS = {
-  'Foreman C': { description: 'Начальный уровень прораба. Отвечает за небольшой участок работ под руководством старшего прораба.', responsibilities: ['Контроль качества работ на участке', 'Координация рабочих бригад', 'Ведение журнала производства работ', 'Соблюдение техники безопасности'], salary: '250 000 – 350 000 ₸', experience: '1–2 года' },
-  'Foreman B': { description: 'Самостоятельно ведёт строительный участок средней сложности. Взаимодействует с субподрядчиками и контролирует соблюдение норм.', responsibilities: ['Управление участком до 50 человек', 'Работа с проектной документацией', 'Контроль сроков и бюджета участка', 'Взаимодействие с субподрядчиками'], salary: '400 000 – 550 000 ₸', experience: '3–5 лет' },
-  'Foreman A': { description: 'Старший прораб, ведущий крупные и сложные объекты. Наставник для Foreman C и B, участвует в планировании проекта.', responsibilities: ['Управление несколькими участками', 'Наставничество Foreman C и B', 'Участие в тендерах и планировании', 'Взаимодействие с проектным менеджером'], salary: '600 000 – 850 000 ₸', experience: '5–8 лет' },
-  'Site Manager': { description: 'Руководит всем строительным объектом целиком, координирует всех прорабов и субподрядчиков.', responsibilities: ['Общее управление объектом', 'Координация всех прорабов', 'Отчётность перед руководством', 'Контроль бюджета объекта'], salary: '900 000 – 1 300 000 ₸', experience: '8–12 лет' },
-  'Deputy Project Manager': { description: 'Помощник руководителя проекта, отвечает за операционную часть управления несколькими объектами.', responsibilities: ['Операционное управление проектами', 'Поддержка руководителя проекта', 'Работа с рисками и изменениями', 'Координация между объектами'], salary: '1 200 000 – 1 700 000 ₸', experience: '10–15 лет' },
-  'Project Manager': { description: 'Полная ответственность за реализацию крупного строительного проекта от начала до сдачи.', responsibilities: ['Стратегическое управление проектом', 'Работа с заказчиком и инвесторами', 'Формирование и развитие команды', 'P&L проекта'], salary: '2 000 000 – 3 500 000 ₸', experience: '15+ лет' },
-  'ГИП': { description: 'Главный инженер проекта — технический руководитель, отвечающий за проектные решения и техническую документацию.', responsibilities: ['Руководство проектированием', 'Согласование технических решений', 'Авторский надзор за строительством', 'Взаимодействие с экспертизой'], salary: '800 000 – 1 200 000 ₸', experience: '7–10 лет' },
-  'Главный инженер дирекции': { description: 'Руководит технической политикой дирекции, координирует работу ГИПов на нескольких проектах.', responsibilities: ['Техническое руководство дирекцией', 'Стандартизация проектных решений', 'Развитие технической экспертизы', 'Управление командой ГИПов'], salary: '1 500 000 – 2 200 000 ₸', experience: '12–18 лет' },
+  'Foreman C': { description: 'Начальный уровень прораба. Отвечает за небольшой участок работ под руководством старшего прораба.', responsibilities: ['Контроль качества работ на участке', 'Координация рабочих бригад', 'Ведение журнала производства работ', 'Соблюдение техники безопасности'], salary: '355 000 – 530 000 ₸', experience: 'до 1 года' },
+  'Foreman B': { description: 'Самостоятельно ведёт строительный участок средней сложности. Взаимодействует с субподрядчиками и контролирует соблюдение норм.', responsibilities: ['Управление участком до 50 человек', 'Работа с проектной документацией', 'Контроль сроков и бюджета участка', 'Взаимодействие с субподрядчиками'], salary: '425 000 – 640 000 ₸', experience: '1–3 года' },
+  'Foreman A': { description: 'Старший прораб, ведущий крупные и сложные объекты. Наставник для Foreman C и B, участвует в планировании проекта.', responsibilities: ['Управление несколькими участками', 'Наставничество Foreman C и B', 'Участие в тендерах и планировании', 'Взаимодействие с проектным менеджером'], salary: '467 000 – 700 000 ₸', experience: '2–4 года' },
+  'Site Engineer D': { description: 'Младший инженер строительного участка. Осваивает техническую документацию и ведёт полевой контроль под руководством старшего инженера.', responsibilities: ['Ведение исполнительной документации', 'Полевой контроль качества', 'Работа с проектной документацией', 'Взаимодействие с прорабами'], salary: '425 000 – 640 000 ₸', experience: '1–3 года' },
+  'Site Engineer C': { description: 'Инженер участка, самостоятельно ведущий технический контроль на объекте и координирующий исполнительную документацию.', responsibilities: ['Технический контроль на объекте', 'Ведение исполнительной документации', 'Контроль соответствия проекту', 'Взаимодействие с авторским надзором'], salary: '467 000 – 700 000 ₸', experience: '2–4 года' },
+  'Site Engineer B': { description: 'Старший инженер участка, координирующий нескольких младших инженеров и взаимодействующий с субподрядчиками по техническим вопросам.', responsibilities: ['Координация инженеров участка', 'Технический аудит субподрядчиков', 'Участие в приёмке работ', 'Подготовка технических отчётов'], salary: '560 000 – 842 000 ₸', experience: '3–5 лет' },
+  'Site Engineer A': { description: 'Ведущий инженер объекта. Отвечает за техническую политику объекта, взаимодействует с проектировщиками и государственными органами.', responsibilities: ['Техническое руководство объектом', 'Взаимодействие с проектировщиками', 'Согласование отступлений от проекта', 'Подготовка к сдаче объекта'], salary: '670 000 – 1 000 000 ₸', experience: '5–7 лет' },
+  'Site Manager': { description: 'Руководит всем строительным объектом целиком, координирует всех прорабов и субподрядчиков.', responsibilities: ['Общее управление объектом', 'Координация всех прорабов', 'Отчётность перед руководством', 'Контроль бюджета объекта'], salary: '560 000 – 842 000 ₸', experience: '3–5 лет' },
+  'Deputy Project Manager': { description: 'Помощник руководителя проекта, отвечает за операционную часть управления несколькими объектами.', responsibilities: ['Операционное управление проектами', 'Поддержка руководителя проекта', 'Работа с рисками и изменениями', 'Координация между объектами'], salary: '670 000 – 1 000 000 ₸', experience: '5–7 лет' },
+  'Project Manager': { description: 'Полная ответственность за реализацию крупного строительного проекта от начала до сдачи.', responsibilities: ['Стратегическое управление проектом', 'Работа с заказчиком и инвесторами', 'Формирование и развитие команды', 'P&L проекта'], salary: '970 000 – 1 450 000 ₸', experience: '8–10 лет' },
+  'Главный Инженер Управления': { description: 'Руководит технической политикой управления, координирует ведущих инженеров на нескольких объектах.', responsibilities: ['Техническое руководство управлением', 'Стандартизация технических решений', 'Развитие инженерной экспертизы', 'Управление командой Site Engineer A'], salary: '810 000 – 1 200 000 ₸', experience: '6–9 лет' },
 }
 
 function findAllPaths(from, to) {
@@ -84,16 +95,63 @@ function computeLayout(paths) {
   return { prefix, branches, suffix }
 }
 
+// Трек каждой должности для расстановки по строкам (0=управленческий, 1=инженерный)
+const NODE_TRACK = {
+  'Foreman C': 0, 'Foreman B': 0, 'Foreman A': 0,
+  'Site Manager': 0, 'Deputy Project Manager': 0, 'Project Manager': 0,
+  'Site Engineer D': 1, 'Site Engineer C': 1, 'Site Engineer B': 1,
+  'Site Engineer A': 1, 'Главный Инженер Управления': 1,
+}
+
+function computeDAGLayout(paths) {
+  if (!paths.length) return null
+  const nodeSet = new Set(paths.flat())
+  const edgeKey = (f, t) => f + '§' + t
+  const edgeSet = new Set()
+  for (const path of paths)
+    for (let i = 0; i < path.length - 1; i++) edgeSet.add(edgeKey(path[i], path[i + 1]))
+  const nodes = [...nodeSet]
+  const edges = [...edgeSet].map(k => { const [f, t] = k.split('§'); return { from: f, to: t } })
+
+  // Longest-path distance from source (topological DP)
+  const col = {}
+  const visited = new Set()
+  function assignCol(n, c) {
+    if (col[n] !== undefined && col[n] >= c) return
+    col[n] = c
+    if (visited.has(n)) return
+    visited.add(n)
+    for (const e of edges) if (e.from === n) assignCol(e.to, c + 1)
+    visited.delete(n)
+  }
+  assignCol(paths[0][0], 0)
+
+  // Row assignment: sort nodes in each column by track
+  const byCol = {}
+  for (const n of nodes) { const c = col[n] || 0; if (!byCol[c]) byCol[c] = []; byCol[c].push(n) }
+  const row = {}
+  for (const nodesInCol of Object.values(byCol)) {
+    nodesInCol.sort((a, b) => (NODE_TRACK[a] ?? 0) - (NODE_TRACK[b] ?? 0))
+    nodesInCol.forEach((n, i) => { row[n] = NODE_TRACK[n] ?? i })
+  }
+
+  const maxCol = Math.max(...Object.values(col))
+  const maxRow = Math.max(...Object.values(row), 0)
+  return { nodes: nodes.map(n => ({ id: n, col: col[n] || 0, row: row[n] || 0 })), edges, maxCol, maxRow }
+}
+
 const GOAL_TO_PLAN_ID = { 'Foreman A': 1 }
 
 // Позиции, которые можно установить как карьерную цель с текущей должности
 const NEXT_GOAL_OPTIONS = {
-  'Foreman B': new Set(['Foreman A']),
-  'Foreman A': new Set(['Site Manager', 'ГИП']),
-  'Site Manager': new Set(['Deputy Project Manager']),
+  'Foreman B':              new Set(['Foreman A', 'Site Engineer D']),
+  'Site Engineer D':        new Set(['Site Engineer C']),
+  'Foreman A':              new Set(['Site Manager']),
+  'Site Engineer C':        new Set(['Site Engineer B']),
+  'Site Engineer B':        new Set(['Site Engineer A']),
+  'Site Manager':           new Set(['Deputy Project Manager']),
+  'Site Engineer A':        new Set(['Deputy Project Manager', 'Главный Инженер Управления']),
   'Deputy Project Manager': new Set(['Project Manager']),
-  'ГИП': new Set(['Главный инженер дирекции']),
-  'Главный инженер дирекции': new Set(['Project Manager']),
 }
 
 const TOUR_STEPS = [
@@ -106,6 +164,7 @@ const TOUR_STEPS = [
 
 export default function CareerMap() {
   const navigate = useNavigate()
+  const { isMobile } = useBreakpoint()
 
   // Сохранённая цель юзера (для дефолтного вида)
   const [savedGoal, setSavedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
@@ -122,12 +181,13 @@ export default function CareerMap() {
   const [suggestions, setSuggestions] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
   const [confirmGoal, setConfirmGoal] = useState(null)
-  const [zoom, setZoom] = useLocalStorage('careermap:zoom', 1.2)
+  const [zoom, setZoom] = useLocalStorage('careermap:zoom', 1.1)
   const [tourSeen, setTourSeen] = useLocalStorage('careermap:tour-seen', false)
   const [tourStep, setTourStep] = useState(null)
   const anchors = useRef({})
 
   useEffect(() => { if (!tourSeen) setTimeout(() => setTourStep(0), 600) }, [])
+  useEffect(() => { if (!buildTo) setZoom(1.1) }, [])
 
   function startTour() { setTourStep(0) }
   function nextStep() {
@@ -155,18 +215,10 @@ export default function CareerMap() {
 
   // Данные для режима исследования
   const allPaths = isExploring ? findAllPaths(buildFrom, buildTo) : []
-  const { prefix, branches, suffix } = computeLayout(allPaths)
-  const isBranching = branches.length > 1
-  const BRANCH_GAP = 24
-  const CARD_H = 170
-
-  const BRANCH_TRACK_LABELS = {
-    'Site Manager': 'Операционная ветка',
-    'ГИП': 'Техническая ветка',
-  }
+  const dagLayout = isExploring ? computeDAGLayout(allPaths) : null
 
   return (
-    <div style={{ padding: '28px 32px', position: 'relative' }}>
+    <div style={{ padding: isMobile ? '16px 12px' : '28px 32px', position: 'relative' }}>
       {selectedCard && (
         <PositionPanel position={selectedCard} isTarget={selectedCard === savedGoal} onClose={() => setSelectedCard(null)} />
       )}
@@ -204,18 +256,20 @@ export default function CareerMap() {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f1923' }}>Карьерный трек</h1>
-        <button onClick={startTour} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid #d0d7e5', background: '#fff', color: '#4a6275', fontSize: 12, cursor: 'pointer', fontWeight: 500 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>help_outline</span>
-          Показать подсказки
-        </button>
+        <h1 style={{ fontSize: isMobile ? 20 : 26, fontWeight: 700, color: '#0f1923' }}>Карьерный трек</h1>
+        {!isMobile && (
+          <button onClick={startTour} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid #d0d7e5', background: '#fff', color: '#4a6275', fontSize: 12, cursor: 'pointer', fontWeight: 500 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>help_outline</span>
+            Показать подсказки
+          </button>
+        )}
       </div>
-      <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 20 }}>Постройте путь к карьерной цели и скорректируйте его при необходимости</p>
+      {!isMobile && <p style={{ color: '#7a8fa0', fontSize: 14, marginBottom: 20 }}>Постройте путь к карьерной цели и скорректируйте его при необходимости</p>}
 
       {/* Панель построения пути */}
-      <div style={{ background: '#fff', borderRadius: 12, padding: '14px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, position: 'relative', zIndex: anyDropdownOpen ? 450 : 10, maxWidth: 1200, marginLeft: 'auto', marginRight: 'auto' }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#7a8fa0' }}>alt_route</span>
-        <span style={{ fontSize: 13, color: '#7a8fa0', fontWeight: 500 }}>Построить путь</span>
+      <div style={{ background: '#fff', borderRadius: 12, padding: isMobile ? '10px 14px' : '14px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap', alignItems: 'center', gap: isMobile ? 8 : 12, marginBottom: isMobile ? 12 : 20, position: 'relative', zIndex: anyDropdownOpen ? 450 : 10, maxWidth: 1200, marginLeft: 'auto', marginRight: 'auto' }}>
+        {!isMobile && <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#7a8fa0' }}>alt_route</span>}
+        {!isMobile && <span style={{ fontSize: 13, color: '#7a8fa0', fontWeight: 500 }}>Построить путь</span>}
 
         {/* От */}
         <span style={{ fontSize: 13, color: '#9aafbd' }}>От</span>
@@ -226,7 +280,7 @@ export default function CareerMap() {
           </div>
         ) : (
           <div style={{ position: 'relative' }}>
-            <input autoFocus value={fromInput} onChange={e => { setFromInput(e.target.value); setShowFromDropdown(true) }} onFocus={() => setShowFromDropdown(true)} onBlur={() => setTimeout(() => setShowFromDropdown(false), 150)} placeholder="Выберите должность" style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, width: 280, outline: 'none' }} />
+            <input autoFocus value={fromInput} onChange={e => { setFromInput(e.target.value); setShowFromDropdown(true) }} onFocus={() => setShowFromDropdown(true)} onBlur={() => setTimeout(() => setShowFromDropdown(false), 150)} placeholder="Выберите должность" style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, width: isMobile ? 140 : 280, outline: 'none' }} />
             {showFromDropdown && <PositionDropdown input={fromInput} onSelect={t => { setBuildFrom(t); setFromInput(''); setShowFromDropdown(false) }} allowAll />}
           </div>
         )}
@@ -238,19 +292,21 @@ export default function CareerMap() {
           {buildTo ? (
             <div style={{ padding: '6px 12px', borderRadius: 7, background: '#f0f4ff', border: '1px solid #c7d2fe', fontSize: 13, color: '#4361ee', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
               {buildTo}
-              <span onMouseDown={() => { setBuildTo(null); setToInput('') }} style={{ cursor: 'pointer', opacity: 0.5, fontSize: 12 }}>✕</span>
+              <span onMouseDown={() => { setBuildTo(null); setToInput(''); setZoom(1.1) }} style={{ cursor: 'pointer', opacity: 0.5, fontSize: 12 }}>✕</span>
             </div>
           ) : (
             <>
-              <input value={toInput} onChange={e => { setToInput(e.target.value); setShowToDropdown(true) }} onFocus={() => setShowToDropdown(true)} onBlur={() => setTimeout(() => setShowToDropdown(false), 150)} placeholder="Выберите должность" style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, width: 200, outline: 'none' }} />
-              {showToDropdown && <PositionDropdown input={toInput} onSelect={t => { setBuildTo(t); setToInput(''); setShowToDropdown(false) }} disabledSet={PAST_POSITIONS} />}
+              <input value={toInput} onChange={e => { setToInput(e.target.value); setShowToDropdown(true) }} onFocus={() => setShowToDropdown(true)} onBlur={() => setTimeout(() => setShowToDropdown(false), 150)} placeholder="Выберите должность" style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, width: isMobile ? 130 : 200, outline: 'none' }} />
+              {showToDropdown && <PositionDropdown input={toInput} onSelect={t => { setBuildTo(t); setToInput(''); setShowToDropdown(false); setZoom(0.7) }} disabledSet={PAST_POSITIONS} />}
             </>
           )}
         </div>
 
-        <div style={{ flex: 1 }}>
-          <input placeholder="🔍 Поиск" style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, width: '100%', outline: 'none' }} />
-        </div>
+        {!isMobile && (
+          <div style={{ flex: 1 }}>
+            <input placeholder="🔍 Поиск" style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid #d0d7e5', fontSize: 13, width: '100%', outline: 'none' }} />
+          </div>
+        )}
 
         <div ref={el => anchors.current['suggestions-toggle'] = el} style={{ position: 'relative' }}>
           <TourTooltip active={activeTour?.anchor === 'suggestions-toggle'} step={activeTour} {...tourProps} position="bottom" />
@@ -261,98 +317,99 @@ export default function CareerMap() {
         </div>
       </div>
 
-      {/* Степпер */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28, padding: '0 8px' }}>
-        {STEP.map((s, i) => (
-          <div key={s} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0, background: i <= currentStep ? '#4361ee' : '#e0e6ef', color: i <= currentStep ? '#fff' : '#9aafbd' }}>
-                {i < currentStep ? '✓' : i === STEP.length - 1 && i > currentStep ? <span className="material-symbols-outlined" style={{ fontSize: 14 }}>lock</span> : i + 1}
+      {/* Степпер — скрыт на мобилке */}
+      {!isMobile && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28, padding: '0 8px' }}>
+          {STEP.map((s, i) => (
+            <div key={s} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0, background: i <= currentStep ? '#4361ee' : '#e0e6ef', color: i <= currentStep ? '#fff' : '#9aafbd' }}>
+                  {i < currentStep ? '✓' : i === STEP.length - 1 && i > currentStep ? <span className="material-symbols-outlined" style={{ fontSize: 14 }}>lock</span> : i + 1}
+                </div>
+                <span style={{ fontSize: 12, fontWeight: i === currentStep ? 600 : 400, color: i <= currentStep ? '#0f1923' : '#9aafbd', whiteSpace: 'nowrap' }}>{s}</span>
               </div>
-              <span style={{ fontSize: 12, fontWeight: i === currentStep ? 600 : 400, color: i <= currentStep ? '#0f1923' : '#9aafbd', whiteSpace: 'nowrap' }}>{s}</span>
+              {i < STEP.length - 1 && <div style={{ flex: 1, height: 2, background: i < currentStep ? '#4361ee' : '#e0e6ef', margin: '0 8px', borderRadius: 2 }} />}
             </div>
-            {i < STEP.length - 1 && <div style={{ flex: 1, height: 2, background: i < currentStep ? '#4361ee' : '#e0e6ef', margin: '0 8px', borderRadius: 2 }} />}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Карта */}
-      <div style={{ background: '#f8f9fc', borderRadius: 14, border: '1px solid #e8edf2', height: 'calc(100vh - 310px)', minHeight: 420, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', bottom: 16, left: 16 }}>
+      {/* Карта — внешняя обёртка для фиксированных оверлеев */}
+      <div style={{ position: 'relative' }}>
+        {/* Подсказка — всегда в левом нижнем углу */}
+        <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10, pointerEvents: 'none' }}>
           <div style={{ fontSize: 11, color: '#9aafbd', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>ads_click</span> Нажмите на карточку для подробностей
           </div>
         </div>
 
-        <div ref={el => anchors.current['zoom-btns'] = el} style={{ position: 'absolute', bottom: 16, right: 16, display: 'flex', flexDirection: 'column', gap: 4, zIndex: activeTour?.anchor === 'zoom-btns' ? 450 : 1 }}>
+        {/* Кнопки масштаба — всегда в правом нижнем углу */}
+        <div ref={el => anchors.current['zoom-btns'] = el} style={{ position: 'absolute', bottom: 16, right: 16, zIndex: activeTour?.anchor === 'zoom-btns' ? 450 : 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <TourTooltip active={activeTour?.anchor === 'zoom-btns'} step={activeTour} {...tourProps} position="top" />
           <button onClick={() => setZoom(z => Math.min(+(z + 0.15).toFixed(2), 2))} style={zoomBtn}>+</button>
           <button onClick={() => setZoom(z => Math.max(+(z - 0.15).toFixed(2), 0.4))} style={zoomBtn}>−</button>
         </div>
 
-        <div style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.2s' }}>
+      <div style={{ background: '#f8f9fc', borderRadius: 14, border: '1px solid #e8edf2', height: isMobile ? 'calc(100vh - 230px)' : 'calc(100vh - 310px)', minHeight: isMobile ? 300 : 420, display: 'flex', alignItems: isExploring ? 'flex-start' : 'center', justifyContent: isExploring ? 'flex-start' : 'center', padding: isMobile ? 16 : 40, overflow: 'auto' }}>
+        <div style={{ transform: `scale(${zoom})`, transformOrigin: isExploring ? 'top left' : 'center center', transition: 'transform 0.2s' }}>
           {isExploring ? (
-            /* ─── Режим исследования: показываем построенный путь ─── */
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              {isBranching ? (
-                <>
-                  {prefix.map((pos, i) => (
-                    <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
-                      {i > 0 && <Arrow />}
-                      <MapCard {...mkCard(pos, { current: pos === CURRENT_POSITION, past: PAST_POSITIONS.has(pos) && pos !== CURRENT_POSITION, fullBars: pos === CURRENT_POSITION })}
-                        onDetails={() => setSelectedCard(pos)}
-                        onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null}
-                        isGoal={isCurrentGoal(pos, savedGoal)} />
+            /* ─── DAG-визуализация: каждая должность — 1 карточка ─── */
+            (() => {
+              if (!dagLayout) return <div style={{ color: '#9aafbd', fontSize: 14 }}>Путь не найден</div>
+              const CW = 210, CH = 160, CGAP = 60, RGAP = 60
+              const cellW = CW + CGAP, cellH = CH + RGAP
+              const totalW = dagLayout.maxCol * cellW + CW + 40
+              const totalH = dagLayout.maxRow * cellH + CH + 20
+              const cx = n => n.col * cellW + CW / 2
+              const cy = n => n.row * cellH + CH / 2
+              const rx = n => n.col * cellW + CW   // правый край карточки
+              const lx = n => n.col * cellW         // левый край карточки
+              return (
+                <div style={{ position: 'relative', width: totalW, height: totalH }}>
+                  <svg style={{ position: 'absolute', inset: 0, width: totalW, height: totalH, pointerEvents: 'none', overflow: 'visible' }}>
+                    <defs>
+                      <marker id="dag-ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+                        <polygon points="0 0,9 3.5,0 7" fill="#bfcad5" />
+                      </marker>
+                    </defs>
+                    {dagLayout.edges.map(e => {
+                      const fn = dagLayout.nodes.find(n => n.id === e.from)
+                      const tn = dagLayout.nodes.find(n => n.id === e.to)
+                      if (!fn || !tn) return null
+                      const x1 = rx(fn), y1 = cy(fn), x2 = lx(tn), y2 = cy(tn)
+                      const mx = (x1 + x2) / 2
+                      return (
+                        <path key={e.from + e.to}
+                          d={`M ${x1} ${y1} C ${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`}
+                          fill="none" stroke="#d0d7e5" strokeWidth="2"
+                          markerEnd="url(#dag-ah)" />
+                      )
+                    })}
+                  </svg>
+                  {dagLayout.nodes.map(node => (
+                    <div key={node.id} style={{ position: 'absolute', left: node.col * cellW, top: node.row * cellH, width: CW }}>
+                      <MapCard
+                        {...mkCard(node.id, {
+                          current: node.id === CURRENT_POSITION,
+                          past: PAST_POSITIONS.has(node.id) && node.id !== CURRENT_POSITION,
+                          fullBars: node.id === CURRENT_POSITION,
+                          target: node.id === buildTo,
+                        })}
+                        fixedWidth={CW}
+                        onDetails={() => setSelectedCard(node.id)}
+                        onSetGoal={canSetGoal(node.id, savedGoal) ? () => setConfirmGoal(node.id) : null}
+                        isGoal={isCurrentGoal(node.id, savedGoal)}
+                      />
+                      {node.id === buildTo && GOAL_TO_PLAN_ID[buildTo] && (
+                        <button onClick={() => navigate('/plans', { state: { planId: GOAL_TO_PLAN_ID[buildTo] } })} style={{ ...openPlanBtn, marginTop: 10, width: '100%' }}>
+                          Открыть план
+                        </button>
+                      )}
                     </div>
                   ))}
-                  <Arrow />
-                  <ForkConnector side="left" count={branches.length} rowH={CARD_H} gap={BRANCH_GAP} />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: BRANCH_GAP }}>
-                    {branches.map((branch, bi) => (
-                      <div key={bi} style={{ display: 'flex', alignItems: 'center', height: CARD_H }}>
-                        {branch.map((pos, i) => (
-                          <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
-                            {i > 0 && <Arrow />}
-                            <MapCard {...mkCard(pos)}
-                              onDetails={() => setSelectedCard(pos)}
-                              onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null}
-                              isGoal={isCurrentGoal(pos, savedGoal)} />
-                          </div>
-                        ))}
-                        <Arrow />
-                      </div>
-                    ))}
-                  </div>
-                  <ForkConnector side="right" count={branches.length} rowH={CARD_H} gap={BRANCH_GAP} />
-                  {suffix.map((pos, i) => (
-                    <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
-                      {i > 0 && <Arrow />}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-                        <MapCard {...mkCard(pos, { target: pos === buildTo })}
-                          onDetails={() => setSelectedCard(pos)}
-                          onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null}
-                          isGoal={isCurrentGoal(pos, savedGoal)} />
-                        {pos === buildTo && <button onClick={() => navigate('/plans', { state: { planId: GOAL_TO_PLAN_ID[buildTo] } })} style={openPlanBtn}>Открыть карьерный план</button>}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              ) : (
-                /* Линейный путь в режиме исследования */
-                <>
-                  {prefix.map((pos, i) => (
-                    <div key={pos} style={{ display: 'flex', alignItems: 'center' }}>
-                      {i > 0 && <Arrow />}
-                      <MapCard {...mkCard(pos, { current: pos === CURRENT_POSITION, past: PAST_POSITIONS.has(pos) && pos !== CURRENT_POSITION, fullBars: pos === CURRENT_POSITION, target: pos === buildTo && i === prefix.length - 1 })}
-                        onDetails={() => setSelectedCard(pos)}
-                        onSetGoal={canSetGoal(pos, savedGoal) ? () => setConfirmGoal(pos) : null}
-                        isGoal={isCurrentGoal(pos, savedGoal)} />
-                    </div>
-                  ))}
-                  {buildTo && <div style={{ marginLeft: 16 }}><button onClick={() => navigate('/plans', { state: { planId: GOAL_TO_PLAN_ID[buildTo] } })} style={openPlanBtn}>Открыть карьерный план</button></div>}
-                </>
-              )}
-            </div>
+                </div>
+              )
+            })()
           ) : (
             /* ─── Дефолтный вид: Foreman C (прошлое) → Foreman B (текущий) → Foreman A (цель) ─── */
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
@@ -399,13 +456,14 @@ export default function CareerMap() {
           )}
         </div>
       </div>
+      </div>{/* /внешняя обёртка карты */}
 
       {/* Карьерные подсказки */}
       {suggestions && (() => {
         const SUGGESTIONS = [
-          { to: 'Foreman A',   desc: 'Прямой следующий шаг' },
-          { to: 'Site Manager', desc: 'Управленческая ветка (через Foreman A)' },
-          { to: 'ГИП',         desc: 'Техническая ветка (через Foreman A)' },
+          { to: 'Foreman A',      desc: 'Управленческий трек — следующий шаг' },
+          { to: 'Site Engineer D', desc: 'Инженерный трек — следующий шаг' },
+          { to: 'Project Manager', desc: 'Конечная цель — управление проектом' },
         ].map(s => {
           const d = POSITION_DATA[s.to] || { skills: { done: 0, total: 1 }, learning: { done: 0, total: 1 } }
           const skillPct = d.skills.total ? Math.round((d.skills.done / d.skills.total) * 100) : 0
@@ -422,7 +480,7 @@ export default function CareerMap() {
             <div style={{ fontSize: 12, color: '#9aafbd', marginBottom: 14 }}>% соответствия — сколько требований вы уже закрыли</div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {SUGGESTIONS.map(s => (
-                <div key={s.to} onClick={() => { setBuildFrom(CURRENT_POSITION); setBuildTo(s.to) }}
+                <div key={s.to} onClick={() => { setBuildFrom(CURRENT_POSITION); setBuildTo(s.to); setZoom(0.7) }}
                   style={{ flex: 1, minWidth: 180, padding: '14px 16px', borderRadius: 10, border: `1px solid ${buildTo === s.to ? '#4361ee' : '#e8edf2'}`, cursor: 'pointer', background: buildTo === s.to ? '#f0f4ff' : '#fafbff' }}>
                   <div style={{ fontWeight: 600, fontSize: 13, color: '#0f1923', marginBottom: 4 }}>{s.to}</div>
                   <div style={{ fontSize: 11, color: '#7a8fa0', marginBottom: 8 }}>{s.desc}</div>
@@ -470,12 +528,15 @@ function mkCard(pos, opts = {}) {
 }
 
 function ForkConnector({ side, count, rowH, gap }) {
-  const totalH = count * rowH + (count - 1) * gap
-  const centers = Array.from({ length: count }, (_, i) => rowH / 2 + i * (rowH + gap))
+  const LABEL_H = 20 // высота подписи ветки над карточкой
+  const rowTotal = rowH + LABEL_H
+  const totalH = count * rowTotal + (count - 1) * gap
+  // Центр каждой строки = верх строки + LABEL_H + rowH/2
+  const centers = Array.from({ length: count }, (_, i) => i * (rowTotal + gap) + LABEL_H + rowH / 2)
   const w = 24
   const lineX = side === 'left' ? 2 : w - 2
   return (
-    <svg width={w} height={totalH} style={{ flexShrink: 0, overflow: 'visible' }}>
+    <svg width={w} height={totalH} style={{ flexShrink: 0, overflow: 'visible', alignSelf: 'flex-start' }}>
       <line x1={lineX} y1={centers[0]} x2={lineX} y2={centers[count - 1]} stroke="#d0d7e5" strokeWidth="2" />
       {centers.map((cy, i) => (
         <line key={i} x1={side === 'left' ? lineX : 0} y1={cy} x2={side === 'left' ? w : lineX} y2={cy} stroke="#d0d7e5" strokeWidth="2" />
@@ -523,7 +584,7 @@ function TourTooltip({ active, step, tourStep, total, onNext, onSkip, onShowLate
         <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{step.title}</span>
         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', marginLeft: 12, marginTop: 2 }}>{tourStep + 1} из {total}</span>
       </div>
-      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.55, marginBottom: 18 }}>{step.body}</p>
+      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.15, marginBottom: 18 }}>{step.body}</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button onClick={onSkip} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 600, padding: 0 }}>Пропустить тур</button>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -535,11 +596,11 @@ function TourTooltip({ active, step, tourStep, total, onNext, onSkip, onShowLate
   )
 }
 
-function MapCard({ title, grade, current, target, past, date, deadline, skillsDone, skillsTotal, learningDone, learningTotal, onDetails, onSetGoal, isGoal }) {
+function MapCard({ title, grade, current, target, past, date, deadline, skillsDone, skillsTotal, learningDone, learningTotal, onDetails, onSetGoal, isGoal, fixedWidth }) {
   const skillPct = skillsTotal ? Math.round((skillsDone / skillsTotal) * 100) : 0
   const learnPct = learningTotal ? Math.round((learningDone / learningTotal) * 100) : 0
   const headerBg = current ? '#4361ee' : target ? '#3d9970' : past ? '#9aafbd' : null
-  const width = (current || target) ? 300 : 220
+  const width = fixedWidth ?? ((current || target) ? 300 : 220)
   return (
     <div style={{ width, background: '#fff', borderRadius: 12, overflow: 'hidden', border: current ? '2px solid #4361ee' : target ? '2px solid #3d9970' : '1px solid #e8edf2', boxShadow: current || target ? '0 4px 20px rgba(67,97,238,0.18)' : '0 1px 4px rgba(0,0,0,0.05)', opacity: past ? 0.75 : 1 }}>
       {(current || target || past) && (
@@ -554,7 +615,7 @@ function MapCard({ title, grade, current, target, past, date, deadline, skillsDo
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <div style={{ width: 34, height: 34, borderRadius: '50%', border: `2px solid ${current ? '#4361ee' : target ? '#3d9970' : '#d0d7e5'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, flexShrink: 0, color: current ? '#4361ee' : target ? '#3d9970' : '#7a8fa0' }}>{grade}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923', lineHeight: 1.2 }}>{title}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923', lineHeight: 1.1 }}>{title}</div>
             <div style={{ fontSize: 11, color: '#7a8fa0', marginTop: 1 }}>BI Development</div>
           </div>
           {deadline && <div style={{ fontSize: 11, color: '#7a8fa0', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}><span className="material-symbols-outlined" style={{ fontSize: 13 }}>schedule</span> {deadline}</div>}
@@ -590,12 +651,12 @@ function PositionPanel({ position, isTarget, onClose }) {
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 590, background: 'rgba(0,0,0,0.18)' }} />
-      <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 400, background: '#fff', boxShadow: '-4px 0 32px rgba(0,0,0,0.12)', zIndex: 600, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 'min(400px, 100vw)', background: '#fff', boxShadow: '-4px 0 32px rgba(0,0,0,0.12)', zIndex: 600, display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid #e8edf2' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
             <div>
               <div style={{ fontSize: 11, color: '#9aafbd', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Должность</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#0f1923', lineHeight: 1.2 }}>{position}</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#0f1923', lineHeight: 1.1 }}>{position}</div>
               <div style={{ fontSize: 12, color: '#7a8fa0', marginTop: 4 }}>{data.grade} · BI Development</div>
             </div>
             <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9aafbd', fontSize: 20, lineHeight: 1, padding: 4 }}>✕</button>

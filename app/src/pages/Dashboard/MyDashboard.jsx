@@ -33,10 +33,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProfile } from '../../ProfileContext'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { RATING_COMPONENTS } from '../../data/ratingData'
+import { RadarChart } from '../../components/RadarChart'
 
 export default function MyDashboard() {
   const navigate = useNavigate()
   const { overallScore } = useProfile()
+  const { isMobile, isTablet } = useBreakpoint()
   const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
   const [pending, setPending] = useLocalStorage('dashboard:pending', INITIAL_PENDING)
   const [confirmed, setConfirmed] = useLocalStorage('dashboard:confirmed', [])
@@ -58,21 +62,26 @@ export default function MyDashboard() {
   function reject(id) {
     setPending(prev => prev.filter(s => s.id !== id))
   }
+  const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : '260px 1fr 280px'
+  const pad = isMobile ? '16px' : '28px 32px'
+
   return (
-    <div style={{ padding: '28px 32px' }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>
+    <div style={{ padding: pad }}>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: '#0f1923', marginBottom: 4 }}>
           Добро пожаловать, <span style={{ color: '#1a2b3c' }}>Каиржан!</span>
         </h1>
-        <p style={{ color: '#7a8fa0', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>Становитесь профессионалом, которым всегда хотели быть <span className="material-symbols-outlined" style={{ fontSize: 16 }}>trending_up</span></p>
+        {!isMobile && (
+          <p style={{ color: '#7a8fa0', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>Становитесь профессионалом, которым всегда хотели быть <span className="material-symbols-outlined" style={{ fontSize: 16 }}>trending_up</span></p>
+        )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr 280px', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: isMobile ? 16 : 24 }}>
         {/* Профиль */}
         <div>
           <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <img src="/avatar1.jpeg" alt="Каиржан Бектембаев"
+              <img src="/avatar1.png" alt="Каиржан Бектембаев"
                 style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #c7d2fe' }}
               />
               <div>
@@ -89,8 +98,18 @@ export default function MyDashboard() {
           </div>
 
           <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#7a8fa0', marginBottom: 12 }}>Рейтинг профиля</div>
-            <ScoreGauge score={overallScore} />
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#7a8fa0', marginBottom: 8 }}>Рейтинг профиля</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <RadarChart
+                size={120}
+                showLabels={false}
+                scores={RATING_COMPONENTS.map(c => c.score)}
+              />
+              <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                <span style={{ fontSize: 20, fontWeight: 800, color: '#4361ee' }}>{overallScore}</span>
+                <span style={{ fontSize: 11, color: '#9aafbd' }}>/ 5.0</span>
+              </div>
+            </div>
             <a href="/dashboard/experience" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#4361ee', marginTop: 8 }}>Подробнее →</a>
           </div>
         </div>
@@ -102,7 +121,7 @@ export default function MyDashboard() {
               <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923' }}>Направления в фокусе</div>
               <button onClick={() => navigate('/plans')} style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Все планы →</button>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
               {plans.map(plan => <PlanCard key={plan.id} plan={plan} onClick={() => navigate('/plans', { state: { planId: plan.id } })} />)}
             </div>
           </div>
@@ -241,17 +260,3 @@ function LevelDots({ level }) {
   )
 }
 
-function ScoreGauge({ score }) {
-  const r = 40, circ = 2 * Math.PI * r, offset = circ - ((score / 5) * 100 / 100) * circ
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#f0f2f8" strokeWidth="8" />
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#4361ee" strokeWidth="8"
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 50 50)" />
-        <text x="50" y="55" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0f1923">{score}</text>
-      </svg>
-      <div style={{ fontSize: 11, color: '#7a8fa0' }}>из 5.0</div>
-    </div>
-  )
-}

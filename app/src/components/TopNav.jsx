@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useProfile } from '../ProfileContext'
+import { useBreakpoint } from '../hooks/useBreakpoint'
 
 const NAV = [
   { to: '/plans',     label: 'Моё развитие'   },
@@ -70,6 +71,7 @@ const LANGUAGES = [
 
 export default function TopNav() {
   const { isDark, toggleDark } = useProfile()
+  const { isMobile } = useBreakpoint()
   const [notifOpen, setNotifOpen] = useState(false)
   const [newsNotif, setNewsNotif] = useState(true)
   const [notifications, setNotifications] = useState(NOTIFICATIONS)
@@ -108,34 +110,37 @@ export default function TopNav() {
         <img src="/BI Damu.png" alt="BI DAMU" className="invert-back" style={{ height: 32, objectFit: 'contain' }} />
       </NavLink>
 
-      {/* Навигация */}
+      {/* Навигация — скрыта на мобилке (есть нижняя панель) */}
       <style>{`
         .nav-link:hover { background: #f0f2f8 !important; }
         .nav-link-active:hover { background: #eef0ff !important; }
       `}</style>
-      <nav style={{ display: 'flex', alignItems: 'center', flex: 1, gap: 2 }}>
-        {NAV.map(item => (
-          <NavLink key={item.to} to={item.to}
-            className={({ isActive }) => isActive ? 'nav-link nav-link-active' : 'nav-link'}
-            style={({ isActive }) => ({
-              display: 'flex', alignItems: 'center', padding: '7px 16px',
-              borderRadius: 12, margin: '0 1px',
-              color: isActive ? '#4361ee' : '#002068',
-              background: isActive ? '#eef0ff' : 'transparent',
-              fontSize: 14.5, fontWeight: isActive ? 600 : 400,
-              transition: 'all 0.15s', whiteSpace: 'nowrap', textDecoration: 'none',
-            })}
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
+      {!isMobile && (
+        <nav style={{ display: 'flex', alignItems: 'center', flex: 1, gap: 2 }}>
+          {NAV.map(item => (
+            <NavLink key={item.to} to={item.to}
+              className={({ isActive }) => isActive ? 'nav-link nav-link-active' : 'nav-link'}
+              style={({ isActive }) => ({
+                display: 'flex', alignItems: 'center', padding: '7px 16px',
+                borderRadius: 12, margin: '0 1px',
+                color: isActive ? '#4361ee' : '#002068',
+                background: isActive ? '#eef0ff' : 'transparent',
+                fontSize: 14.5, fontWeight: isActive ? 600 : 400,
+                transition: 'all 0.15s', whiteSpace: 'nowrap', textDecoration: 'none',
+              })}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+      {isMobile && <div style={{ flex: 1 }} />}
 
       {/* Правая часть */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} ref={panelRef}>
 
-        {/* Язык */}
-        <div style={{ position: 'relative' }} ref={langRef}>
+        {/* Язык — скрыт на мобилке */}
+        {!isMobile && <div style={{ position: 'relative' }} ref={langRef}>
           <button
             onClick={() => setLangOpen(v => !v)}
             style={{
@@ -170,7 +175,7 @@ export default function TopNav() {
               ))}
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Колокольчик */}
         <div style={{ position: 'relative' }}>
@@ -192,9 +197,10 @@ export default function TopNav() {
 
           {notifOpen && (
             <div style={{
-              position: 'absolute', right: 0, top: 'calc(100% + 8px)',
+              position: 'fixed', right: isMobile ? 8 : 0, left: isMobile ? 8 : 'auto',
+              top: isMobile ? 64 : 'calc(100% + 8px)',
               background: '#fff', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
-              border: '1px solid #e8edf2', width: 380, zIndex: 200, overflow: 'hidden',
+              border: '1px solid #e8edf2', width: isMobile ? 'auto' : 380, zIndex: 200, overflow: 'hidden',
             }}>
               {/* Шапка */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #f0f2f8' }}>
@@ -260,24 +266,28 @@ export default function TopNav() {
           )}
         </div>
 
-        {/* Тема */}
-        <button
-          onClick={toggleDark}
-          title={isDark ? 'Светлая тема' : 'Тёмная тема'}
-          style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
-            {isDark ? 'light_mode' : 'dark_mode'}
-          </span>
-        </button>
+        {/* Тема — скрыта на мобилке */}
+        {!isMobile && (
+          <button
+            onClick={toggleDark}
+            title={isDark ? 'Светлая тема' : 'Тёмная тема'}
+            style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
+              {isDark ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+        )}
 
-        {/* Apps */}
-        <button style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>apps</span>
-        </button>
+        {/* Apps — скрыт на мобилке */}
+        {!isMobile && (
+          <button style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>apps</span>
+          </button>
+        )}
 
         {/* Аватар */}
-        <img src="/avatar1.jpeg" alt="Каиржан Бектембаев"
+        <img src="/avatar1.png" alt="Каиржан Бектембаев"
           className="invert-back"
           style={{ width: 34, height: 34, borderRadius: '50%', marginLeft: 6, objectFit: 'cover', cursor: 'pointer', border: '2px solid #4ade80', flexShrink: 0 }}
         />
