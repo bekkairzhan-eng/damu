@@ -169,6 +169,7 @@ function AwaitingAssessmentView({ plan, onBack }) {
 }
 
 function CompletedPlanView({ plan, onBack }) {
+  const { isMobile } = useBreakpoint()
   const allSkills = prevSkillGroups.flatMap(g => g.skills)
   const achieved = allSkills.filter(s => !s.skipped).length
 

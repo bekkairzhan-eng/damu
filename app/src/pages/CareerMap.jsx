@@ -36,14 +36,16 @@ const POSITION_DATA = {
   'Foreman C':              { grade: '13', skills: { done: 8,  total: 10 }, learning: { done: 5, total: 6  } },
   'Foreman B':              { grade: '14', skills: { done: 14, total: 16 }, learning: { done: 7, total: 9  } },
   'Foreman A':              { grade: '15', skills: { done: plan1DevelopedSkills, total: plan1TotalSkills }, learning: { done: plan1DoneLearning, total: plan1TotalLearning } },
-  'Site Engineer D':        { grade: '14', skills: { done: 0,  total: 18 }, learning: { done: 0, total: 10 } },
-  'Site Engineer C':        { grade: '15', skills: { done: 0,  total: 20 }, learning: { done: 0, total: 11 } },
-  'Site Engineer B':        { grade: '16', skills: { done: 0,  total: 22 }, learning: { done: 0, total: 12 } },
-  'Site Engineer A':        { grade: '17', skills: { done: 0,  total: 24 }, learning: { done: 0, total: 13 } },
-  'Site Manager':           { grade: '16', skills: { done: 3,  total: 20 }, learning: { done: 1, total: 12 } },
-  'Deputy Project Manager': { grade: '17', skills: { done: 2,  total: 18 }, learning: { done: 0, total: 10 } },
-  'Project Manager':        { grade: '19', skills: { done: 0,  total: 24 }, learning: { done: 0, total: 14 } },
-  'Главный Инженер Управления': { grade: '18', skills: { done: 0, total: 26 }, learning: { done: 0, total: 13 } },
+  // Инженерный трек: небольшое перекрытие с полевым (~10–15%)
+  'Site Engineer D':        { grade: '14', skills: { done: 3,  total: 18 }, learning: { done: 1, total: 10 } },
+  'Site Engineer C':        { grade: '15', skills: { done: 3,  total: 20 }, learning: { done: 1, total: 11 } },
+  'Site Engineer B':        { grade: '16', skills: { done: 2,  total: 22 }, learning: { done: 1, total: 12 } },
+  'Site Engineer A':        { grade: '17', skills: { done: 2,  total: 24 }, learning: { done: 1, total: 13 } },
+  // Полевой трек: ближний — заметный %, дальний — убывает
+  'Site Manager':           { grade: '16', skills: { done: 6,  total: 20 }, learning: { done: 3, total: 12 } },
+  'Deputy Project Manager': { grade: '17', skills: { done: 4,  total: 18 }, learning: { done: 2, total: 10 } },
+  'Project Manager':        { grade: '19', skills: { done: 3,  total: 24 }, learning: { done: 1, total: 14 } },
+  'Главный Инженер Управления': { grade: '18', skills: { done: 2, total: 26 }, learning: { done: 1, total: 13 } },
 }
 
 const POSITION_DETAILS = {
