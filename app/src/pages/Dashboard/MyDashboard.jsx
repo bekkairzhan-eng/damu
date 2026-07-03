@@ -1,5 +1,28 @@
 import { plan1TotalSkills, plan1DevelopedSkills, plan1TotalLearning, plan1DoneLearning } from '../../data/careerPlan1'
 
+const POSITION_RANKING = [
+  { name: 'Алибек Жанов',       score: 4.7, isMe: false },
+  { name: 'Нурлан Сейтжанов',   score: 4.5, isMe: false },
+  { name: 'Каиржан Бектембаев', score: 4.3, isMe: true  },
+  { name: 'Серик Абенов',       score: 4.1, isMe: false },
+  { name: 'Жандос Мухамедов',   score: 3.9, isMe: false },
+  { name: 'Дамир Ержанов',      score: 3.8, isMe: false },
+  { name: 'Бауыржан Сатов',     score: 3.7, isMe: false },
+]
+
+const GENERAL_RANKING = [
+  { name: 'Арман Сейткали',     position: 'Site Engineer A', score: 4.9 },
+  { name: 'Алибек Жанов',       position: 'Foreman B',       score: 4.7 },
+  { name: 'Марат Айтжанов',     position: 'Site Manager',    score: 4.6 },
+  { name: 'Нурлан Сейтжанов',   position: 'Foreman B',       score: 4.5 },
+  { name: 'Ерлан Қасымов',      position: 'Foreman A',       score: 4.4 },
+  { name: 'Каиржан Бектембаев', position: 'Foreman B',       score: 4.3, isMe: true },
+  { name: 'Серик Абенов',       position: 'Foreman B',       score: 4.1 },
+  { name: 'Дания Омарова',      position: 'Site Engineer B', score: 4.0 },
+  { name: 'Жандос Мухамедов',   position: 'Foreman B',       score: 3.9 },
+  { name: 'Бауыржан Сатов',     position: 'Foreman B',       score: 3.7 },
+]
+
 const BASE_PLANS = [
   {
     id: 2, title: 'План развития на основе оценки',
@@ -97,7 +120,7 @@ export default function MyDashboard() {
             </div>
           </div>
 
-          <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#7a8fa0', marginBottom: 8 }}>Рейтинг профиля</div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <RadarChart
@@ -112,6 +135,8 @@ export default function MyDashboard() {
             </div>
             <a href="/dashboard/experience" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#4361ee', marginTop: 8 }}>Подробнее →</a>
           </div>
+
+          <RankingWidget />
         </div>
 
         {/* Центр */}
@@ -182,6 +207,66 @@ export default function MyDashboard() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function RankingWidget() {
+  const [showGeneral, setShowGeneral] = useState(false)
+  const myRank = POSITION_RANKING.findIndex(r => r.isMe) + 1
+  const total = POSITION_RANKING.length
+  const list = showGeneral ? GENERAL_RANKING : POSITION_RANKING
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: '#7a8fa0' }}>
+          {showGeneral ? 'Общий рейтинг' : 'Рейтинг среди Foreman B'}
+        </div>
+        {!showGeneral && (
+          <span style={{ fontSize: 11, background: '#f0f4ff', color: '#4361ee', padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>
+            #{myRank} из {total}
+          </span>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+        {list.map((p, i) => (
+          <div key={p.name} style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '6px 10px', borderRadius: 8,
+            background: p.isMe ? '#f0f4ff' : 'transparent',
+            border: p.isMe ? '1px solid #c7d2fe' : '1px solid transparent',
+          }}>
+            <div style={{ width: 20, textAlign: 'center', flexShrink: 0 }}>
+              {i === 0
+                ? <span style={{ fontSize: 14 }}>🥇</span>
+                : i === 1
+                  ? <span style={{ fontSize: 14 }}>🥈</span>
+                  : i === 2
+                    ? <span style={{ fontSize: 14 }}>🥉</span>
+                    : <span style={{ fontSize: 11, fontWeight: 700, color: '#9aafbd' }}>#{i + 1}</span>
+              }
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: p.isMe ? 700 : 400, color: p.isMe ? '#4361ee' : '#1a2b3c', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {p.isMe ? 'Вы' : p.name}
+              </div>
+              {showGeneral && p.position && (
+                <div style={{ fontSize: 10, color: '#9aafbd' }}>{p.position}</div>
+              )}
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 700, color: p.isMe ? '#4361ee' : '#4a6275', flexShrink: 0 }}>{p.score}</span>
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={() => setShowGeneral(v => !v)}
+        style={{ width: '100%', padding: '7px', borderRadius: 8, border: '1px solid #d0d7e5', background: showGeneral ? '#f0f4ff' : '#fafafa', color: showGeneral ? '#4361ee' : '#4a6275', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+      >
+        {showGeneral ? '← Только Foreman B' : 'Показать общий рейтинг'}
+      </button>
     </div>
   )
 }
