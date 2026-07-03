@@ -414,8 +414,14 @@ function SkillRow({ skill }) {
   )
 }
 
+const HR_FROM_MATRIX = { name: 'Айгерим Сейткалиева', role: 'HR-партнёр' }
+
 function EligibilityTab() {
   const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
+  const [assessmentReq, setAssessmentReq] = useLocalStorage('assessment:request', null)
+  const [showModal, setShowModal] = useState(false)
+  const [message, setMessage] = useState('')
+
   const totalSkills = skillGroups.flatMap(g => g.skills).length
   const developedSkills = skillGroups.flatMap(g => g.skills).filter(s => s.status === 'developed').length
   const skillPct = Math.round((developedSkills / totalSkills) * 100)
@@ -436,8 +442,56 @@ function EligibilityTab() {
     { label: 'Обязательные курсы пройдены', value: `${doneLearning} из ${totalLearning}`, ok: doneLearning >= totalLearning, hint: 'Все обязательные курсы должны быть завершены' },
   ]
   const allOk = reqs.every(r => r.ok)
+
+  function submitRequest() {
+    const now = new Date()
+    const date = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+    const time = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    setAssessmentReq({ from: 'Foreman B', to: savedGoal, message, hr: HR_FROM_MATRIX, sentAt: `${date}, ${time}` })
+    setShowModal(false)
+    setMessage('')
+  }
+
   return (
     <div>
+      {/* Модальное окно запроса */}
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: 480, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#f0f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#4361ee' }}>fact_check</span>
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: '#0f1923' }}>Запрос на аттестацию</div>
+                <div style={{ fontSize: 12, color: '#7a8fa0', marginTop: 2 }}>Foreman B → {savedGoal} · BI Development</div>
+              </div>
+            </div>
+
+            <div style={{ background: '#f8f9fc', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: 12, color: '#4a6275' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15, verticalAlign: 'middle', marginRight: 6, color: '#7a8fa0' }}>person</span>
+              Запрос будет назначен: <strong style={{ color: '#0f1923' }}>{HR_FROM_MATRIX.name}</strong>, {HR_FROM_MATRIX.role}
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#0f1923', marginBottom: 8 }}>Сопроводительное сообщение</div>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder="Опишите почему считаете себя готовым к аттестации, укажите ключевые достижения..."
+                rows={4}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #d0d7e5', fontSize: 13, color: '#0f1923', resize: 'vertical', outline: 'none', fontFamily: 'inherit', lineHeight: 1.6 }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => { setShowModal(false); setMessage('') }} style={btnOutline}>Отмена</button>
+              <button onClick={submitRequest} disabled={!message.trim()} style={{ ...btnPrimary, opacity: message.trim() ? 1 : 0.5 }}>Отправить запрос</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: 16, color: '#0f1923', marginBottom: 4 }}>
           Текущий статус готовности к оценке: {savedGoal}
@@ -463,8 +517,32 @@ function EligibilityTab() {
 
         <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button style={btnOutline}>Поделиться</button>
-          <button style={{ ...btnPrimary, opacity: allOk ? 1 : 0.5 }} disabled={!allOk}>Запросить аттестацию</button>
+          {assessmentReq ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 7, background: '#fef3c7', border: '1px solid #fcd34d' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#d97706' }}>hourglass_empty</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#92400e' }}>
+                Ожидает: {assessmentReq.hr.name}, {assessmentReq.hr.role}
+              </span>
+            </div>
+          ) : (
+            <button onClick={() => setShowModal(true)} style={{ ...btnPrimary, opacity: allOk ? 1 : 0.5 }} disabled={!allOk}>
+              Запросить аттестацию
+            </button>
+          )}
         </div>
+
+        {/* Блок отправленного запроса */}
+        {assessmentReq && (
+          <div style={{ marginTop: 16, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, padding: '14px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#d97706' }}>schedule_send</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#92400e' }}>Запрос отправлен {assessmentReq.sentAt}</span>
+            </div>
+            <div style={{ fontSize: 12, color: '#78350f', lineHeight: 1.6, fontStyle: 'italic' }}>
+              «{assessmentReq.message}»
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

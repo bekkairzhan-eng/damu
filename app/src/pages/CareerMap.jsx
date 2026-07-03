@@ -186,6 +186,7 @@ export default function CareerMap() {
   const [zoom, setZoom] = useLocalStorage('careermap:zoom', 1.1)
   const [tourSeen, setTourSeen] = useLocalStorage('careermap:tour-seen', false)
   const [tourStep, setTourStep] = useState(null)
+  const [assessmentReq] = useLocalStorage('assessment:request', null)
   const anchors = useRef({})
 
   useEffect(() => { if (!tourSeen) setTimeout(() => setTourStep(0), 600) }, [])
@@ -200,7 +201,7 @@ export default function CareerMap() {
   function skipTour() { setTourStep(null); setTourSeen(true) }
   function showLater() { setTourStep(null) }
 
-  const currentStep = 2
+  const currentStep = assessmentReq ? 3 : 2
   const activeTour = tourStep !== null ? TOUR_STEPS[tourStep] : null
   const anyDropdownOpen = showToDropdown || showFromDropdown || activeTour?.anchor === 'build-path'
   const tourProps = { tourStep, total: TOUR_STEPS.length, onNext: nextStep, onPrev: prevStep, onSkip: skipTour, onShowLater: showLater }
@@ -322,17 +323,40 @@ export default function CareerMap() {
       {/* Степпер — скрыт на мобилке */}
       {!isMobile && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28, padding: '0 8px' }}>
-          {STEP.map((s, i) => (
-            <div key={s} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0, background: i <= currentStep ? '#4361ee' : '#e0e6ef', color: i <= currentStep ? '#fff' : '#9aafbd' }}>
-                  {i < currentStep ? '✓' : i === STEP.length - 1 && i > currentStep ? <span className="material-symbols-outlined" style={{ fontSize: 14 }}>lock</span> : i + 1}
+          {STEP.map((s, i) => {
+            const isPending = assessmentReq && i === STEP.length - 1
+            const isDone = i < currentStep
+            const isActive = i === currentStep
+            const isLocked = !assessmentReq && i === STEP.length - 1 && i > currentStep
+            return (
+              <div key={s} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{
+                    width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0,
+                    background: isPending ? '#fef3c7' : isDone || isActive ? '#4361ee' : '#e0e6ef',
+                    color: isPending ? '#d97706' : isDone || isActive ? '#fff' : '#9aafbd',
+                    border: isPending ? '2px solid #fcd34d' : 'none',
+                  }}>
+                    {isDone ? '✓' : isPending
+                      ? <span className="material-symbols-outlined" style={{ fontSize: 13 }}>hourglass_empty</span>
+                      : isLocked
+                        ? <span className="material-symbols-outlined" style={{ fontSize: 14 }}>lock</span>
+                        : i + 1}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 12, fontWeight: isActive || isPending ? 600 : 400, color: isDone || isActive || isPending ? '#0f1923' : '#9aafbd', whiteSpace: 'nowrap' }}>{s}</span>
+                    {isPending && (
+                      <span style={{ fontSize: 10, color: '#d97706', whiteSpace: 'nowrap' }}>
+                        Ожидает: {assessmentReq.hr.name}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: i === currentStep ? 600 : 400, color: i <= currentStep ? '#0f1923' : '#9aafbd', whiteSpace: 'nowrap' }}>{s}</span>
+                {i < STEP.length - 1 && <div style={{ flex: 1, height: 2, background: isDone ? '#4361ee' : '#e0e6ef', margin: '0 8px', borderRadius: 2 }} />}
               </div>
-              {i < STEP.length - 1 && <div style={{ flex: 1, height: 2, background: i < currentStep ? '#4361ee' : '#e0e6ef', margin: '0 8px', borderRadius: 2 }} />}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
