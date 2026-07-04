@@ -4,9 +4,20 @@ import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import CareerPlanDetail from './CareerPlanDetail'
 
-const BASE_PLANS = [
-  { id: 2, title: 'План развития на основе оценки', from: 'Foreman B', dept: 'BI Development', noData: true },
-  { id: 3, title: 'Предыдущий карьерный план', from: 'Foreman C', dept: 'BI Development', progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, pinned: true },
+const MOCK_ASSESSMENT_HISTORY = [
+  {
+    id: 2,
+    requestedAt: '12 Мар 2025',
+    completedAt: '19 Мар 2025',
+    status: 'completed',
+    hrName: 'Айгерим Сейткалиева',
+    hrComment: 'В целом хороший прогресс. Рекомендую сосредоточиться на технических навыках и управлении субподрядчиками.',
+    skills: [
+      { name: 'BIM-технологии',                      passed: false, comment: 'Необходимо пройти курс Revit Advanced.' },
+      { name: 'Управление субподрядчиками',           passed: false, comment: 'Нужно больше практики в переговорах.' },
+      { name: 'Нормативно-техническая документация',  passed: false, comment: 'Обновить знания по СНиП 2025.' },
+    ],
+  },
 ]
 
 const PLAN_TYPES = ['Обратная связь', 'Наставничество', 'Проект', 'Адаптация', 'Вклад в команду', 'OKR', 'KPI', 'Вектор навыков']
@@ -18,8 +29,16 @@ export default function MyPlans() {
   const { isMobile } = useBreakpoint()
   const [savedGoal] = useLocalStorage('careermap:goal', 'Foreman A')
 
+  const [assessmentHistory] = useLocalStorage('assessment:history', MOCK_ASSESSMENT_HISTORY)
+  const latestAssessment = assessmentHistory?.find(a => a.status === 'completed') ?? null
+  const failedSkills = latestAssessment?.skills?.filter(s => !s.passed) ?? []
+
+  const assessmentPlan = latestAssessment
+    ? { id: 2, title: 'План развития на основе оценки', from: 'Foreman B', dept: 'BI Development', progress: 0, total: failedSkills.length, deadline: null, assessmentData: latestAssessment }
+    : { id: 2, title: 'План развития на основе оценки', from: 'Foreman B', dept: 'BI Development', noData: true }
+
   const activePlan = { id: 1, title: `Стать ${savedGoal}`, from: 'Foreman B', dept: 'BI Development', progress: 15, total: 21, deadline: '06 Фев 2027', pinned: true }
-  const recPlans = [activePlan, ...BASE_PLANS]
+  const recPlans = [activePlan, assessmentPlan, { id: 3, title: 'Предыдущий карьерный план', from: 'Foreman C', dept: 'BI Development', progress: 18, total: 19, deadline: '30 Авг 2024', expired: true, pinned: true }]
 
   useEffect(() => {
     if (location.state?.planId) {
@@ -121,6 +140,25 @@ function PlanCard({ plan, onClick }) {
             <span style={{ fontSize: 11, fontWeight: 600, color: '#d97706' }}>Ожидает аттестации</span>
           </div>
           <div style={{ fontSize: 11, color: '#9aafbd', lineHeight: 1.5 }}>План сформируется автоматически после прохождения оценки компетенций</div>
+        </div>
+      ) : plan.assessmentData ? (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ea580c' }}>fact_check</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#ea580c' }}>{plan.assessmentData.completedAt}</span>
+            <span style={{ fontSize: 11, color: '#9aafbd' }}>· {plan.assessmentData.hrName}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {plan.assessmentData.skills.filter(s => !s.passed).slice(0, 2).map(s => (
+              <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#0f1923' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#ea580c' }}>arrow_right</span>
+                {s.name}
+              </div>
+            ))}
+            {plan.assessmentData.skills.filter(s => !s.passed).length > 2 && (
+              <div style={{ fontSize: 11, color: '#9aafbd' }}>+{plan.assessmentData.skills.filter(s => !s.passed).length - 2} навыков</div>
+            )}
+          </div>
         </div>
       ) : (
         <>

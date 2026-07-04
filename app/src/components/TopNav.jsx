@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useProfile } from '../ProfileContext'
 import { useBreakpoint } from '../hooks/useBreakpoint'
+import { useRoles } from '../hooks/useRole'
 
 const NAV = [
   { to: '/plans',     label: 'Моё развитие'   },
@@ -72,6 +73,10 @@ const LANGUAGES = [
 export default function TopNav() {
   const { isDark, toggleDark } = useProfile()
   const { isMobile } = useBreakpoint()
+  const roles = useRoles()
+  const navigate = useNavigate()
+  const [panelOpen, setPanelOpen] = useState(false)
+  const panelSwitchRef = useRef(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const [newsNotif, setNewsNotif] = useState(true)
   const [notifications, setNotifications] = useState(NOTIFICATIONS)
@@ -92,6 +97,18 @@ export default function TopNav() {
     if (notifOpen) document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [notifOpen])
+
+  useEffect(() => {
+    function h(e) { if (panelSwitchRef.current && !panelSwitchRef.current.contains(e.target)) setPanelOpen(false) }
+    if (panelOpen) document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [panelOpen])
+
+  const extraRoles = roles.filter(r => r !== 'employee')
+  const PANEL_OPTIONS = [
+    { key: 'hr',    label: 'HR-панель',           icon: 'badge',    path: '/hr',    color: '#0f766e', show: roles.includes('hr')    },
+    { key: 'admin', label: 'Панель администратора', icon: 'settings', path: '/admin', color: '#4361ee', show: roles.includes('admin') },
+  ].filter(p => p.show)
 
   useEffect(() => {
     function h(e) { if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false) }
@@ -284,6 +301,29 @@ export default function TopNav() {
           <button style={{ padding: 8, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: '#4a6275', display: 'flex' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 22 }}>apps</span>
           </button>
+        )}
+
+        {/* Переключатель панелей — только если есть HR или Admin роль */}
+        {!isMobile && PANEL_OPTIONS.length > 0 && (
+          <div style={{ position: 'relative' }} ref={panelSwitchRef}>
+            <button onClick={() => setPanelOpen(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, background: '#f0f4ff', border: '1px solid #dde4ff', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#4361ee' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>switch_account</span>
+              {extraRoles.length > 1 ? `+${extraRoles.length}` : extraRoles[0] === 'hr' ? 'HR' : 'Admin'}
+            </button>
+            {panelOpen && (
+              <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.18)', border: '1px solid #e8edf2', width: 220, zIndex: 200, overflow: 'hidden' }}>
+                <div style={{ padding: '10px 14px', borderBottom: '1px solid #f0f2f5', fontSize: 11, fontWeight: 600, color: '#7a8fa0', textTransform: 'uppercase', letterSpacing: 0.5 }}>Переключить панель</div>
+                {PANEL_OPTIONS.map(opt => (
+                  <button key={opt.key} onClick={() => { navigate(opt.path); setPanelOpen(false) }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', background: '#fff', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: opt.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 17, color: opt.color }}>{opt.icon}</span>
+                    </div>
+                    <span style={{ fontSize: 13, color: '#0f1923', fontWeight: 500 }}>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Аватар */}

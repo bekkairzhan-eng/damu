@@ -7,10 +7,10 @@ const NAV_ITEMS = [
   { path: '/dashboard/my-dashboard', label: 'Моя страница',  icon: 'dashboard'     },
   { path: '/dashboard/my-skills',    label: 'Мои навыки',   icon: 'school'        },
   { path: '/dashboard/experience',   label: 'Профиль опыта', icon: 'person'       },
+  { path: '/assessment',             label: 'Аттестация',    icon: 'fact_check'    },
 ]
 
 const SOON_ITEMS = [
-  { label: 'Аттестация',    icon: 'fact_check'   },
   { label: 'Мой наставник', icon: 'support_agent' },
 ]
 
