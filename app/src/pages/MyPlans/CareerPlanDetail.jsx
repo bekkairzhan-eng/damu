@@ -53,8 +53,9 @@ export default function CareerPlanDetail({ plan, onBack }) {
   const allLearning = LEARNING_PLAN.flatMap(g => g.items)
   const doneLearning = allLearning.filter(i => i.status === 'done').length
 
-  if (plan.expired) return <CompletedPlanView plan={plan} onBack={onBack} />
-  if (plan.noData)  return <AwaitingAssessmentView plan={plan} onBack={onBack} />
+  if (plan.expired)        return <CompletedPlanView plan={plan} onBack={onBack} />
+  if (plan.noData)         return <AwaitingAssessmentView plan={plan} onBack={onBack} />
+  if (plan.assessmentData) return <AssessmentPlanView plan={plan} onBack={onBack} />
 
   return (
     <div style={{ padding: '0 0 40px' }}>
@@ -164,6 +165,140 @@ function AwaitingAssessmentView({ plan, onBack }) {
           <span className="material-symbols-outlined" style={{ fontSize: 18, flexShrink: 0 }}>hourglass_empty</span> Ближайшая аттестация запланирована HR-партнёром. Ожидайте уведомления.
         </div>
       </div>
+    </div>
+  )
+}
+
+function AssessmentPlanView({ plan, onBack }) {
+  const { isMobile } = useBreakpoint()
+  const { hrName, completedAt, requestedAt, hrComment, skills } = plan.assessmentData
+  const failedSkills = skills.filter(s => !s.passed)
+  const passedSkills = skills.filter(s => s.passed)
+
+  return (
+    <div style={{ padding: '0 0 40px' }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid #e8edf2', padding: isMobile ? '12px 16px' : '16px 32px' }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4361ee', fontSize: 13, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>← Моё развитие</button>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <h1 style={{ fontSize: isMobile ? 16 : 20, fontWeight: 700, color: '#0f1923' }}>{plan.title}</h1>
+              <span style={{ fontSize: 11, background: '#ffedd5', color: '#ea580c', padding: '3px 10px', borderRadius: 20, fontWeight: 700 }}>По итогам аттестации</span>
+            </div>
+            <div style={{ fontSize: 13, color: '#7a8fa0' }}>
+              {plan.dept} · Подана {requestedAt} · Завершена {completedAt} · HR: {hrName}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: isMobile ? '16px' : '20px 32px' }}>
+        {/* Сводка */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+          {[
+            { label: 'Навыков оценено', value: skills.length, color: '#4361ee', bg: '#eff6ff' },
+            { label: 'Подтверждено', value: passedSkills.length, color: '#059669', bg: '#d1fae5' },
+            { label: 'Требуют доработки', value: failedSkills.length, color: '#ea580c', bg: '#ffedd5' },
+          ].map(s => (
+            <div key={s.label} style={{ background: s.bg, borderRadius: 12, padding: '16px 20px' }}>
+              <div style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{s.value}</div>
+              <div style={{ fontSize: 11, color: '#4a6275', marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Общий комментарий HR */}
+        {hrComment && (
+          <div style={{ background: '#f8f9fc', border: '1px solid #e8edf2', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#4361ee' }}>forum</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#0f1923' }}>Комментарий {hrName}</span>
+            </div>
+            <p style={{ fontSize: 13, color: '#4a6275', lineHeight: 1.6, margin: 0 }}>{hrComment}</p>
+          </div>
+        )}
+
+        {/* Навыки для доработки */}
+        <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden', marginBottom: failedSkills.length ? 16 : 0 }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f0f2f8', fontWeight: 700, fontSize: 14, color: '#0f1923' }}>
+            Навыки, которые нужно подтянуть
+          </div>
+          {failedSkills.length === 0 ? (
+            <div style={{ padding: '24px 20px', textAlign: 'center', color: '#9aafbd', fontSize: 13 }}>Все оценённые навыки подтверждены — замечаний нет.</div>
+          ) : failedSkills.map(skill => <FailedSkillRow key={skill.name} skill={skill} />)}
+        </div>
+
+        {/* Подтверждённые навыки */}
+        {passedSkills.length > 0 && (
+          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid #f0f2f8', fontWeight: 700, fontSize: 14, color: '#0f1923' }}>Подтверждённые навыки</div>
+            {passedSkills.map(skill => (
+              <div key={skill.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 20px', borderBottom: '1px solid #f8f9fc' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#059669' }}>check_circle</span>
+                <span style={{ fontSize: 13, color: '#1a2b3c' }}>{skill.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function FailedSkillRow({ skill }) {
+  const [deadline, setDeadline] = useLocalStorage(`skill:deadline:${skill.name}`, null)
+  const [picking, setPicking] = useState(false)
+  const [tempDate, setTempDate] = useState('')
+
+  function confirm() {
+    if (tempDate) setDeadline(tempDate)
+    setPicking(false)
+  }
+
+  function fmt(iso) {
+    const [y, m, d] = iso.split('-')
+    const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек']
+    return `${d} ${months[+m - 1]} ${y}`
+  }
+
+  return (
+    <div style={{ padding: '12px 20px', borderBottom: '1px solid #f8f9fc', position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ea580c', flexShrink: 0, marginTop: 1 }}>error</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#0f1923', marginBottom: 3 }}>{skill.name}</div>
+          {skill.comment && <div style={{ fontSize: 12, color: '#7a8fa0', lineHeight: 1.5 }}>{skill.comment}</div>}
+        </div>
+        {deadline ? (
+          <span onClick={() => { setTempDate(deadline); setPicking(true) }} style={{ fontSize: 12, color: '#4361ee', cursor: 'pointer', whiteSpace: 'nowrap', background: '#f0f4ff', padding: '2px 8px', borderRadius: 8, flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>schedule</span> {fmt(deadline)}
+          </span>
+        ) : (
+          <span onClick={() => setPicking(true)} style={{ fontSize: 12, color: '#9aafbd', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>schedule</span> Установить срок
+          </span>
+        )}
+      </div>
+
+      {picking && (
+        <div style={{
+          position: 'absolute', right: 20, top: '100%', zIndex: 100,
+          background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.14)',
+          border: '1px solid #e8edf2', padding: 14, display: 'flex', flexDirection: 'column', gap: 10,
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#0f1923' }}>Срок выполнения</div>
+          <input
+            type="date"
+            value={tempDate}
+            onChange={e => setTempDate(e.target.value)}
+            style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #d0d7e5', fontSize: 13, outline: 'none' }}
+          />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setPicking(false)} style={{ flex: 1, padding: '5px', borderRadius: 7, border: '1px solid #d0d7e5', background: '#fff', color: '#4a6275', fontSize: 12, cursor: 'pointer' }}>Отмена</button>
+            <button onClick={confirm} style={{ flex: 1, padding: '5px', borderRadius: 7, border: 'none', background: '#4361ee', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>Сохранить</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
