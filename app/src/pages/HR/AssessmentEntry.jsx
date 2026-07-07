@@ -22,11 +22,59 @@ const DEFAULT_SKILLS = [
   'Чтение строительных чертежей', 'Контроль качества СМР', 'Управление командой', 'Охрана труда (ОТиТБ)',
 ]
 
+const CURRENT_HR_NAME = 'Айгерим Сейткалиева'
+
+// Тот же дефолт, что и в Assessment/index.jsx и MyPlans/index.jsx — чтобы первая запись
+// из этой формы не затёрла демо-историю, если это первое обращение к ключу в сессии
+const DEFAULT_ASSESSMENT_HISTORY = [
+  {
+    id: 2,
+    requestedAt: '12 Мар 2025',
+    completedAt: '19 Мар 2025',
+    status: 'completed',
+    hrName: 'Айгерим Сейткалиева',
+    hrComment: 'В целом хороший прогресс. Рекомендую сосредоточиться на технических навыках и управлении субподрядчиками.',
+    skills: [
+      { name: 'Чтение строительных чертежей',    passed: true,  comment: '' },
+      { name: 'Контроль качества СМР',            passed: true,  comment: '' },
+      { name: 'Работа с госдокументацией',        passed: true,  comment: '' },
+      { name: 'BIM-технологии',                   passed: false, comment: 'Необходимо пройти курс Revit Advanced. Текущий уровень недостаточен для перехода на Foreman A.' },
+      { name: 'Управление командой',              passed: true,  comment: 'Хорошо справляется с командой до 10 человек.' },
+      { name: 'Управление субподрядчиками',       passed: false, comment: 'Нужно больше практики в переговорах. Рекомендую взять 1–2 самостоятельных контракта.' },
+      { name: 'Охрана труда (ОТиТБ)',             passed: true,  comment: '' },
+      { name: 'Нормативно-техническая документация', passed: false, comment: 'Обновить знания по СНиП 2025. Пройти курс "Актуальные нормативы в строительстве".' },
+    ],
+  },
+  {
+    id: 1,
+    requestedAt: '5 Сен 2024',
+    completedAt: '14 Сен 2024',
+    status: 'completed',
+    hrName: 'Айгерим Сейткалиева',
+    hrComment: 'Хорошая база, но требуется проработка управленческих компетенций.',
+    skills: [
+      { name: 'Чтение строительных чертежей',    passed: true,  comment: '' },
+      { name: 'Контроль качества СМР',            passed: false, comment: 'Нет системного подхода. Рекомендую курс по контролю качества ПИР.' },
+      { name: 'Управление командой',              passed: false, comment: 'Не хватает навыков мотивации команды. Пройти тренинг по лидерству.' },
+      { name: 'Охрана труда (ОТиТБ)',             passed: true,  comment: '' },
+      { name: 'BIM-технологии',                   passed: false, comment: 'Базовый уровень недостаточен. Требуется Revit Intermediate.' },
+    ],
+  },
+]
+
+function formatToday() {
+  const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+  const now = new Date()
+  return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
+}
+
 export default function AssessmentEntry() {
   const { state: employee } = useLocation()
   const navigate = useNavigate()
   const [, setCompleted] = useLocalStorage('hr:completed', [])
   const [, setPending] = useLocalStorage('hr:pending', [])
+  const [, setHistory] = useLocalStorage('assessment:history', DEFAULT_ASSESSMENT_HISTORY)
+  const [, setAssessmentReq] = useLocalStorage('assessment:request', null)
 
   const skills = SKILLS_BY_TARGET[employee?.target] ?? DEFAULT_SKILLS
   const [results, setResults] = useState(() =>
@@ -50,14 +98,28 @@ export default function AssessmentEntry() {
   function handleSubmit() {
     const passedCount = Object.values(results).filter(r => r.passed).length
     const skillList = skills.map(s => ({ name: s, passed: results[s].passed, comment: results[s].comment }))
+    const today = formatToday()
 
-    // Move from pending to completed
+    // Move from pending to completed (для дашборда HR)
     setPending(prev => (prev ?? []).filter(p => p.id !== employee.id))
     setCompleted(prev => [...(prev ?? []), {
       id: employee.id, name: employee.name, position: employee.position,
       target: employee.target, cluster: employee.cluster, dept: employee.dept,
-      completedAt: 'Сегодня', passed: passedCount, total: skills.length,
+      completedAt: today, passed: passedCount, total: skills.length,
     }])
+
+    // Полная запись с комментариями — то, что увидит сотрудник в «Моём развитии»
+    setHistory(prev => [{
+      id: Date.now(),
+      requestedAt: employee.submittedAt,
+      completedAt: today,
+      status: 'completed',
+      hrName: CURRENT_HR_NAME,
+      hrComment: generalComment,
+      skills: skillList,
+    }, ...(prev ?? [])])
+    setAssessmentReq(null)
+
     setSubmitted(true)
   }
 
