@@ -489,7 +489,6 @@ export default function CareerMap() {
         const SUGGESTIONS = [
           { to: 'Foreman A',      desc: 'Управленческий трек — следующий шаг' },
           { to: 'Site Engineer D', desc: 'Инженерный трек — следующий шаг' },
-          { to: 'Project Manager', desc: 'Конечная цель — управление проектом' },
         ].map(s => {
           const d = POSITION_DATA[s.to] || { skills: { done: 0, total: 1 }, learning: { done: 0, total: 1 } }
           const skillPct = d.skills.total ? Math.round((d.skills.done / d.skills.total) * 100) : 0
