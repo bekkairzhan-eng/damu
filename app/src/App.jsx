@@ -17,6 +17,7 @@ import Users from './pages/Admin/Users'
 import HRLayout from './pages/HR/HRLayout'
 import HRDashboard from './pages/HR/HRDashboard'
 import AssessmentEntry from './pages/HR/AssessmentEntry'
+import AddCertificate from './pages/HR/AddCertificate'
 import RoleGuard from './components/RoleGuard'
 import { ProfileProvider } from './ProfileContext'
 
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/hr" element={<RoleGuard role="hr"><HRLayout /></RoleGuard>}>
           <Route index element={<HRDashboard />} />
           <Route path="assessment" element={<AssessmentEntry />} />
+          <Route path="certificates" element={<AddCertificate />} />
         </Route>
       </Routes>
     </BrowserRouter>

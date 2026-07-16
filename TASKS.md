@@ -100,7 +100,7 @@ BI Damu встраивается в мобильное приложение **BI
 - S3 — файлы (сертификаты, аватары)
 - Kafka — события между сервисами
 - Redis — кэш
-- UnityBPM — оркестрация задач (запрос аттестации → задача HR)
+- UnityBPM — оркестрация задач: запрос аттестации → задача HR (новое), подтверждение навыка → задача эксперту (новое), заявка на обучение → координатор Корп. университета (**уже существует в BPM**, интегрируемся с текущим процессом). Детали — [BPM_INTEGRATION.md](BPM_INTEGRATION.md)
 
 ### Философия: Damu vs UnityBPM
 - **Damu** — витрина для сотрудника и хранилище данных развития. Сотрудник видит свой прогресс, планы, навыки, треки
@@ -126,12 +126,18 @@ BI Damu встраивается в мобильное приложение **BI
 - Количество попыток аттестации не ограничено
 
 ### Флоу аттестации через UnityBPM
-1. Сотрудник нажимает "Запросить аттестацию" в Damu → событие уходит в BPM
-2. BPM по матрице определяет состав аттестационной комиссии, HR назначает участников
-3. Задачи участникам уходят через BPM (почта, уведомления, эскалации)
-4. Если не реагируют — BPM блокирует/эскалирует автоматически
-5. По итогам HR вносит результат в Damu: что не дотянул, формирует план развития
-6. Damu обновляет статус сотрудника и карьерный план
+
+> Сущность **новая** — создаётся в BPM с нуля по нашему ТЗ. Подробности (кнопки, статусы, вебхуки) — в [BPM_INTEGRATION.md](BPM_INTEGRATION.md#2-запрос-на-аттестацию).
+
+1. Сотрудник нажимает "Запросить аттестацию" в Damu (доступно от 85% выполнения плана) → в BPM уходит заявка вместе со снапшотом (ФИО, текущая/целевая должность, % плана, статус ключевых навыков, история прошлых попыток) — статус `pending`
+2. Заявка падает HR-партнёру подразделения в «Мои документы». Кнопок "Исполнить"/"Отказать" сразу нет — только **"Добавить участников"**
+3. HR добавляет участников комиссии в модалке → появляется кнопка **"Исполнить"** (отказать заявку нельзя вообще)
+4. По "Исполнить" — целиком внутри BPM: участникам создаётся задача "Ознакомление" + письмо (без интеграции с Outlook пока, отдельный канал). Статус в Damu → `awaiting_assessment` ("Ожидает аттестацию")
+5. Саму встречу с участниками и сотрудником HR назначает **офлайн через Outlook** — Damu дату/место не получает
+6. На встрече HR в уже существующем экране Damu (`AssessmentEntry`) вносит результат: прошёл/не прошёл по каждому навыку + комментарии
+7. Если все навыки прошли — статус `completed`, `outcome = passed`, сотрудник видит "Прошёл аттестацию" с пояснением **"на скамейке"** (ждёт открытую позицию — дальше офлайн, HR/компания ищут место)
+8. Если есть непройденные — план остаётся `active`, HR-комментарии по навыкам отображаются в плане развития
+9. Попыток не ограничено — каждая создаёт новую запись `assessment`
 
 ### Интеграции
 - **HRMS** — источник правды для:
@@ -184,6 +190,8 @@ BI Damu встраивается в мобильное приложение **BI
 
 **Для сотрудника:** полная история всех аттестаций. На каждую запись:
 - Дата подачи и дата завершения
+- Статус: "Ожидает аттестацию" (участники добавлены в BPM, встреча назначена офлайн) → "Прошёл аттестацию" / комментарии по непройденным навыкам
+- Если прошёл полностью — пояснение **"на скамейке"** (ждёт открытую позицию, снятие статуса не автоматизировано — см. открытые вопросы)
 - Общий комментарий HR
 - По каждому навыку: прошёл / не прошёл + текстовый комментарий HR
 - Сотрудник может подавать сколько угодно раз — все попытки хранятся
@@ -200,6 +208,20 @@ BI Damu встраивается в мобильное приложение **BI
 Таблица в БД: `assessments` — одна запись на попытку аттестации, связана с `assessment_skills` (навыки + результат + комментарий).
 
 **"Мой наставник"** — заблокирован, бизнес не готов. В модели данных не закладывать.
+
+### Заявка на обучение
+
+> Сущность **уже существует в BPM** ("Заявка на обучение") — не проектируем заново, интегрируемся с текущим процессом. Полный разбор — [BPM_INTEGRATION.md](BPM_INTEGRATION.md#3-заявка-на-обучение).
+
+- Триггер: истечение/приближение истечения сертификата — Damu показывает предупреждение, кнопка "Записаться"; либо самостоятельная подача сотрудником; либо HR подаёт за сотрудника (тот же путь, разница только в инициаторе)
+- Заявка ≠ факт обучения — между подачей и зачислением может пройти 1–2 месяца (набор группы). Раз в сутки крон сверяет `pending`-заявки с LMS (BILIM) по паре `employee_guid + program_guid`
+- Статусы: `pending` → `matched` → `completed` / `rejected` (BPM отклонил) / `withdrawn` (сотрудник сам отозвал в BPM, кнопка "Отозвать"). Из `rejected`/`withdrawn` можно подать заново, попыток не ограничено
+- HR может добавить сертификат сотруднику вручную (офлайн-обучение мимо LMS) — если есть незакрытая заявка на этот же курс, система предлагает HR привязать сертификат к ней вместо создания отдельной записи
+- Все сертификаты (из LMS или ручные) отображаются в "Профиль опыта" с датой получения, с разбивкой по кварталам (Q1–Q4)
+
+Для фронтенда — новые экраны/состояния, которых сейчас нет в прототипе:
+- Сотрудник: предупреждение об истечении сертификата + кнопка "Записаться" (модалка выбора программы), статус заявки в истории (аналог истории аттестаций)
+- HR-панель: форма "Добавить сертификат сотруднику" с проверкой на существующую заявку (диалог "У сотрудника уже есть поданная заявка. Подтвердить этим сертификатом?")
 
 ### Роли в системе
 | Роль | Что может |
@@ -220,6 +242,8 @@ BI Damu встраивается в мобильное приложение **BI
 | 4 — Эксперт | Уходит на апрув специалисту через UnityBPM |
 
 Файлы-доказательства не требуются. Апрувер принимает решение на основе своего профессионального суждения.
+
+У эксперта в BPM две кнопки: "Подтвердить" (без комментария) / "Отклонить" (**комментарий обязателен** — без него отправить нельзя). При отклонении комментарий приходит сотруднику вместе с решением как причина отказа.
 
 ### Матрица утверждения навыков
 - Один утверждающий на один навык
@@ -242,7 +266,7 @@ BI Damu встраивается в мобильное приложение **BI
 
 | Сущность | Ключевые поля | Источник | Связи |
 |----------|---------------|----------|-------|
-| `employee` | id, ФИО, фото, position_id, cluster_id, org_unit_id, стаж, company_id | HRMS (read-only) | → position, cluster, org_unit |
+| `employee` | id, ФИО, фото, position_id, cluster_id, org_unit_id, стаж, company_id, on_bench (bool, Damu) | HRMS (read-only), on_bench — Damu | → position, cluster, org_unit |
 | `position` | id, name, grade, description, salary_min?, salary_max? | 1С / HRMS (вилки) | — |
 | `cluster` | id, name (K1 / K2-Север / K2-Юг / K2-International) | Damu | — |
 | `career_graph_edge` | cluster_id, from_position_id, to_position_id | Damu (Admin) | → cluster, position ×2 |
@@ -251,13 +275,16 @@ BI Damu встраивается в мобильное приложение **BI
 | `employee_skill` | employee_id, skill_id, current_level, status (self / pending / confirmed / rejected), confirmed_by, confirmed_at | Damu | → employee, skill |
 | `career_plan` | id, employee_id, target_position_id, status (active / completed / replaced), created_at | Damu | → employee, position |
 | `plan_learning_item` | id, plan_id, type (курс / сертификат / рекоменд.), title, status (done / in-progress / not-started), source (LMS / manual) | LMS + ручной ввод | → career_plan |
-| `assessment` | id, employee_id, target_position_id, cluster_id, submitted_at, completed_at, hr_comment, status (pending / completed) | Damu | → employee, position |
+| `assessment` | id, employee_id, target_position_id, cluster_id, submitted_at, completed_at, hr_comment, status (pending / awaiting_assessment / completed), outcome (passed / partial) | Damu | → employee, position |
 | `assessment_skill` | assessment_id, skill_id, result (passed / failed), comment | Damu | → assessment, skill |
-| `skill_approval_history` | id, employee_id, skill_id, approver, decision, comment, decided_at | Damu (webhook из BPM) | → employee, skill |
+| `skill_approval_history` | id, employee_id, skill_id, approver, decision, comment (обязателен при отклонении), decided_at | Damu (webhook из BPM) | → employee, skill |
+| `training_request` | id, employee_id, employee_guid, program_guid, program_title, status (pending / matched / completed / rejected / withdrawn), source (self / hr), bpm_request_id, requested_at, matched_at, completed_at | Damu, статус — BPM/крон-сверка с LMS | → employee |
+| `certificate` | id, employee_id, training_request_id?, title, issuer, obtained_at, expires_at, status (valid / expired), file_url, source (lms / manual), added_by? | LMS (по завершении заявки) / ручной ввод HR | → employee, training_request |
+| `hr_org_assignment` | org_unit_id, hr_employee_id, synced_at | Damu (кэш фида из BPM) | → employee |
 | `rating_weight` | component (enum, 5 шт.), weight (%) | Damu (Admin) | — |
 | `profile_rating` | employee_id, score, component_scores (json), computed_at | Damu (ночной батч) | → employee |
 | `project` | id, employee_id, source (HRMS / manual), title, date_from, date_to, description | HRMS (1 осн.) + ручной | → employee |
-| `notification` | id, employee_id, type (skill_approved / plan_updated), payload, is_read, created_at | Damu (Kafka) | → employee |
+| `notification` | id, employee_id, type (skill_approved / plan_updated / assessment_completed / training_request_status), payload, is_read, created_at | Damu (Kafka) | → employee |
 | `user_role` | employee_id, role (employee / hr / admin) | Keycloak | → employee |
 
 Кластер сотрудника, орг. структура, зарплатные вилки — из HRMS, в Damu не редактируются.
@@ -280,6 +307,9 @@ BI Damu встраивается в мобильное приложение **BI
 | Аттестация — история (`Assessment`) | `MOCK_HISTORY` | `GET /api/me/assessments` |
 | HR — очередь (`HRDashboard`) | `MOCK_PENDING/COMPLETED` | `GET /api/hr/assessments?status=` |
 | HR — ввод оценки (`AssessmentEntry`) | localStorage | `POST /api/hr/assessments/:id/result` |
+| Заявка на обучение — подача (сотрудник) | **нет в прототипе, новый экран** | `POST /api/me/training-requests` |
+| Заявка на обучение — история (сотрудник) | **нет в прототипе, новый экран** | `GET /api/me/training-requests` |
+| HR — добавить сертификат сотруднику | **нет в прототипе, новый экран** | `GET /api/hr/training-requests/match-check`, `POST /api/hr/certificates` |
 | Admin — навыки | localStorage | CRUD `/api/admin/skills` |
 | Admin — должности | localStorage | CRUD `/api/admin/positions` |
 | Admin — карьерный граф | localStorage | CRUD `/api/admin/career-graph` |
@@ -325,6 +355,9 @@ BI Damu встраивается в мобильное приложение **BI
 - [ ] **Онбординг-тур** (в коде есть `careermap:tour-seen`) — в TASKS не описан. Оставляем, дорабатываем?
 - [ ] **Аватары / файлы в S3:** кто загружает — сотрудник сам или тянется из HRMS?
 - [ ] **Локализация интерфейса** (не данных): библиотека и формат хранения UI-строк.
+- [ ] **Снятие статуса «на скамейке»:** формально не определено — предполагаем, что разрешится само через смену `position_id` из HRMS. Нужен ли отдельный ручной способ снять раньше?
+- [ ] **Заявка на обучение — сверка с LMS:** отдаёт ли LMS/BPM API по паре `employee_guid + program_guid`, или это периодическая выгрузка списком?
+- [ ] **Матрица ответственных (HR по подразделению):** формат фида из BPM — push при изменении или снапшот?
 
 ---
 
@@ -336,6 +369,8 @@ BI Damu встраивается в мобильное приложение **BI
 - [x] Аттестация: сотрудник запрашивает → задача в UnityBPM → HR
 - [x] Профиль сотрудника — всё из HRMS
 - [x] Корпоративная активность — из HRMS
-- [x] Подтверждение навыков — по матрице через UnityBPM (РП или тех специалист)
+- [x] Подтверждение навыков — по матрице через UnityBPM (РП или тех специалист); комментарий обязателен при отклонении
+- [x] Аттестация — детальный флоу в BPM: участники добавляются HR в BPM, встреча назначается офлайн через Outlook, результат вносится в существующем экране Damu
+- [x] Заявка на обучение — уже существует в BPM, три источника подачи (сотрудник / HR), сверка с LMS по крону раз в сутки, ручное добавление сертификата HR-ом с привязкой к существующей заявке
 - [x] HR/менеджер в MVP не нужен как отдельный экран
 - [x] **Назначение в обход навыков:** сотрудник может получить должность без выполнения всех требований (решение HR/руководства). В этом случае система всё равно создаёт активный план с gap-анализом — навыки, которых не хватает, отображаются как «не подтверждены» и требуют планомерного подтягивания. Аттестация запрашивается в обычном порядке.

@@ -1,8 +1,9 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
 
 const NAV_ITEMS = [
-  { path: '/hr',             label: 'Аттестации',       icon: 'fact_check',  exact: true },
-  { path: '/hr/employees',   label: 'Сотрудники',       icon: 'group'                    },
+  { path: '/hr',             label: 'Аттестации',       icon: 'fact_check',      exact: true },
+  { path: '/hr/certificates', label: 'Сертификаты',     icon: 'workspace_premium'            },
+  { path: '/hr/employees',   label: 'Сотрудники',       icon: 'group'                        },
 ]
 
 const ACCENT = '#0f766e'
