@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 const MOCK_EMPLOYEES = [
@@ -44,16 +44,32 @@ function findMatchingRequest(requests, employeeId, title) {
   )
 }
 
+function certStatus(cert) {
+  if (!cert.expiresAt) return { label: 'Бессрочный', color: '#4a6275', bg: '#f0f2f8' }
+  const daysLeft = Math.ceil((new Date(cert.expiresAt) - new Date()) / 86400000)
+  if (daysLeft < 0) return { label: 'Истёк', color: '#dc2626', bg: '#fee2e2' }
+  if (daysLeft <= 60) return { label: `Истекает через ${daysLeft} дн.`, color: '#d97706', bg: '#fef3c7' }
+  return { label: 'Действителен', color: '#059669', bg: '#d1fae5' }
+}
+
+function isThisMonth(dateStr) {
+  const d = new Date(dateStr)
+  const now = new Date()
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+}
+
 export default function AddCertificate() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const [certificates, setCertificates] = useLocalStorage('hr:certificates', [])
   const [trainingRequests, setTrainingRequests] = useLocalStorage('hr:training-requests', MOCK_TRAINING_REQUESTS)
 
   const [search, setSearch] = useState('')
-  const [employee, setEmployee] = useState(null)
+  const [employee, setEmployee] = useState(state?.employee ?? null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [matchDialog, setMatchDialog] = useState(null) // { request } | null
   const [saved, setSaved] = useState(null) // последний сохранённый сертификат
+  const [listSearch, setListSearch] = useState('')
 
   const filteredEmployees = MOCK_EMPLOYEES.filter(e =>
     e.name.toLowerCase().includes(search.toLowerCase())
@@ -129,6 +145,7 @@ export default function AddCertificate() {
   }
 
   return (
+    <div>
     <div style={{ maxWidth: 640 }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f1923', margin: 0 }}>Добавить сертификат</h1>
@@ -257,38 +274,102 @@ export default function AddCertificate() {
           </div>
         </div>
       )}
+    </div>
 
-      {/* Недавно добавленные */}
-      {certificates?.length > 0 && (
-        <div style={{ marginTop: 32 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#0f1923', margin: '0 0 12px' }}>Недавно добавленные</h2>
-          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e8edf2', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc' }}>
-                  {['Сотрудник', 'Сертификат', 'Дата получения', 'Источник'].map(h => (
-                    <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#7a8fa0', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e8edf2' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {certificates.slice(0, 5).map((c, i) => (
-                  <tr key={c.id} style={{ borderBottom: i < Math.min(certificates.length, 5) - 1 ? '1px solid #f0f2f5' : 'none' }}>
-                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#0f1923', fontWeight: 500 }}>{c.employeeName}</td>
-                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#0f1923' }}>{c.title}</td>
-                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#7a8fa0' }}>{c.obtainedAt}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: c.trainingRequestId ? '#eff6ff' : '#f0fdf4', color: c.trainingRequestId ? '#2563eb' : '#16a34a' }}>
-                        {c.trainingRequestId ? 'Привязан к заявке' : 'Добавлен вручную'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Список добавленных сертификатов */}
+      <div style={{ marginTop: 40 }}>
+        <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f1923', margin: '0 0 16px' }}>Сертификаты, добавленные вручную</h2>
+
+        {(certificates ?? []).length === 0 ? (
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px dashed #e8edf2', padding: '40px 20px', textAlign: 'center', color: '#7a8fa0', fontSize: 13 }}>
+            Здесь появятся сертификаты, добавленные вручную HR-ом. Пока список пуст.
           </div>
-        </div>
-      )}
+        ) : (
+          <>
+            {/* Stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+              {[
+                { label: 'Всего добавлено', value: certificates.length, icon: 'workspace_premium', color: ACCENT },
+                { label: 'Получено в этом месяце', value: certificates.filter(c => isThisMonth(c.obtainedAt)).length, icon: 'calendar_today', color: '#4361ee' },
+                { label: 'Привязано к заявкам', value: certificates.filter(c => c.trainingRequestId).length, icon: 'link', color: '#7c3aed' },
+              ].map(s => (
+                <div key={s.label} style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', border: '1px solid #e8edf2', display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: s.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 22, color: s.color }}>{s.icon}</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: '#0f1923' }}>{s.value}</div>
+                    <div style={{ fontSize: 12, color: '#7a8fa0' }}>{s.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <input
+              value={listSearch}
+              onChange={e => setListSearch(e.target.value)}
+              placeholder="Поиск по сотруднику или названию сертификата..."
+              style={{ ...inputStyle, maxWidth: 360, marginBottom: 16 }}
+            />
+
+            <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e8edf2', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    {['Сотрудник', 'Сертификат', 'Дата получения', 'Срок действия', 'Источник'].map(h => (
+                      <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#7a8fa0', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e8edf2' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {certificates
+                    .filter(c =>
+                      c.employeeName.toLowerCase().includes(listSearch.toLowerCase()) ||
+                      c.title.toLowerCase().includes(listSearch.toLowerCase())
+                    )
+                    .map((c, i, arr) => {
+                      const status = certStatus(c)
+                      return (
+                        <tr key={c.id} style={{ borderBottom: i < arr.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
+                          <td style={{ padding: '14px 20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{ width: 32, height: 32, borderRadius: '50%', background: ACCENT + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 18, color: ACCENT }}>person</span>
+                              </div>
+                              <div style={{ fontWeight: 600, fontSize: 14, color: '#0f1923' }}>{c.employeeName}</div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '14px 20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{ width: 30, height: 30, borderRadius: 8, background: '#ede9fe', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#7c3aed' }}>workspace_premium</span>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 13, fontWeight: 500, color: '#0f1923' }}>{c.title}</div>
+                                {c.issuer && <div style={{ fontSize: 11, color: '#7a8fa0' }}>{c.issuer}</div>}
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '14px 20px', fontSize: 13, color: '#7a8fa0' }}>{c.obtainedAt}</td>
+                          <td style={{ padding: '14px 20px' }}>
+                            <span style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: status.bg, color: status.color, whiteSpace: 'nowrap' }}>
+                              {status.label}
+                            </span>
+                          </td>
+                          <td style={{ padding: '14px 20px' }}>
+                            <span style={{ padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: c.trainingRequestId ? '#eff6ff' : '#f0fdf4', color: c.trainingRequestId ? '#2563eb' : '#16a34a', whiteSpace: 'nowrap' }}>
+                              {c.trainingRequestId ? 'Привязан к заявке' : 'Добавлен вручную'}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
