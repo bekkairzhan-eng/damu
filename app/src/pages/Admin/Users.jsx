@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 const INITIAL_USERS = [
-  { id: 'u1', name: 'Каиржан Бектембаев', position: 'Foreman B',           cluster: 'K2-Север', dept: 'BI Development',    roles: ['employee', 'hr', 'admin'] },
-  { id: 'u2', name: 'Айгерим Сейткалиева', position: 'HR Business Partner', cluster: 'K2-Север', dept: 'HR Department',     roles: ['employee', 'hr'] },
-  { id: 'u3', name: 'Данияр Сейтжанов',    position: 'Foreman B',           cluster: 'K2-Север', dept: 'BI Construction',   roles: ['employee'] },
+  { id: 'u1', name: 'Каиржан Бектембаев', position: 'Foreman B',           cluster: 'K2', dept: 'BI Development',    roles: ['employee', 'hr', 'admin'] },
+  { id: 'u2', name: 'Айгерим Сейткалиева', position: 'HR Business Partner', cluster: 'K2', dept: 'HR Department',     roles: ['employee', 'hr'] },
+  { id: 'u3', name: 'Данияр Сейтжанов',    position: 'Foreman B',           cluster: 'K2', dept: 'BI Construction',   roles: ['employee'] },
   { id: 'u4', name: 'Арман Жумабеков',     position: 'Foreman C',           cluster: 'K1',       dept: 'BI Infrastructure', roles: ['employee'] },
-  { id: 'u5', name: 'Серик Байжанов',      position: 'Site Engineer B',     cluster: 'K2-Юг',    dept: 'BI Development',    roles: ['employee'] },
+  { id: 'u5', name: 'Серик Байжанов',      position: 'Site Engineer B',     cluster: 'K2',       dept: 'BI Development',    roles: ['employee'] },
   { id: 'u6', name: 'Нурлан Ахметов',      position: 'Project Manager',     cluster: 'K1',       dept: 'BI Construction',   roles: ['employee', 'admin'] },
 ]
 

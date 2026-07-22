@@ -3,20 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 const MOCK_PENDING = [
-  { id: 1, name: 'Данияр Сейтжанов',   position: 'Foreman B',      target: 'Foreman A',      cluster: 'K2-Север', dept: 'BI Construction',   submittedAt: '28 Июн 2026' },
+  { id: 1, name: 'Данияр Сейтжанов',   position: 'Foreman B',      target: 'Foreman A',      cluster: 'K2', dept: 'BI Construction',   submittedAt: '28 Июн 2026' },
   { id: 2, name: 'Арман Жумабеков',     position: 'Foreman C',      target: 'Foreman B',      cluster: 'K1',       dept: 'BI Infrastructure', submittedAt: '25 Июн 2026' },
-  { id: 3, name: 'Серик Байжанов',      position: 'Site Engineer B', target: 'Site Engineer A', cluster: 'K2-Юг',  dept: 'BI Development',    submittedAt: '20 Июн 2026' },
+  { id: 3, name: 'Серик Байжанов',      position: 'Site Engineer B', target: 'Site Engineer A', cluster: 'K2',     dept: 'BI Development',    submittedAt: '20 Июн 2026' },
 ]
 
 const MOCK_COMPLETED = [
-  { id: 4, name: 'Каиржан Бектембаев', position: 'Foreman B', target: 'Foreman A', cluster: 'K2-Север', dept: 'BI Development', completedAt: '19 Мар 2025', passed: 5, total: 8 },
+  { id: 4, name: 'Каиржан Бектембаев', position: 'Foreman B', target: 'Foreman A', cluster: 'K2', dept: 'BI Development', completedAt: '19 Мар 2025', passed: 5, total: 8 },
   { id: 5, name: 'Нурлан Ахметов',     position: 'Foreman A', target: 'Site Manager', cluster: 'K1',    dept: 'BI Construction', completedAt: '10 Янв 2025', passed: 7, total: 8 },
 ]
 
 const CLUSTER_COLORS = {
   'K1':               { bg: '#eff6ff', color: '#2563eb' },
-  'K2-Север':         { bg: '#f0fdf4', color: '#16a34a' },
-  'K2-Юг':            { bg: '#fff7ed', color: '#ea580c' },
+  'K2':               { bg: '#f0fdf4', color: '#16a34a' },
   'K2-International': { bg: '#fdf4ff', color: '#9333ea' },
 }
 

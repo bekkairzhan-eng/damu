@@ -7,7 +7,7 @@ const STATS = [
 
 const ACTIVITY = [
   { text: 'Добавлен навык: Управление ESG-рисками',                   time: '2 ч назад',  icon: 'add_circle',   color: '#10b981' },
-  { text: 'Обновлены требования: Foreman A / K2-Север',               time: '5 ч назад',  icon: 'edit',         color: '#4361ee' },
+  { text: 'Обновлены требования: Foreman A / K2',                     time: '5 ч назад',  icon: 'edit',         color: '#4361ee' },
   { text: 'Изменены веса рейтинга: Активность обучения 25% → 30%',   time: 'вчера',      icon: 'bar_chart',    color: '#8b5cf6' },
   { text: 'Добавлена должность: Principal Engineer',                  time: '3 дня назад', icon: 'work',        color: '#f59e0b' },
   { text: 'Карьерный граф K2-International обновлён',                 time: '1 нед назад', icon: 'account_tree', color: '#4361ee' },
@@ -15,8 +15,7 @@ const ACTIVITY = [
 
 const CLUSTERS = [
   { label: 'K1 — Инфраструктура и Констракшн', employees: 1240, tracks: 4 },
-  { label: 'K2-Север',                          employees: 890,  tracks: 4 },
-  { label: 'K2-Юг',                             employees: 1103, tracks: 4 },
+  { label: 'K2',                                employees: 1993, tracks: 4 },
   { label: 'K2-International',                  employees: 614,  tracks: 5 },
 ]
 

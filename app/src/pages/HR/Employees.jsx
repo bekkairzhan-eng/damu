@@ -2,25 +2,24 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const MOCK_EMPLOYEES = [
-  { id: 1, name: 'Данияр Сейтжанов',   position: 'Foreman B',       dept: 'BI Construction',   cluster: 'K2-Север' },
+  { id: 1, name: 'Данияр Сейтжанов',   position: 'Foreman B',       dept: 'BI Construction',   cluster: 'K2' },
   { id: 2, name: 'Арман Жумабеков',    position: 'Foreman C',       dept: 'BI Infrastructure', cluster: 'K1' },
-  { id: 3, name: 'Серик Байжанов',     position: 'Site Engineer B', dept: 'BI Development',    cluster: 'K2-Юг' },
-  { id: 4, name: 'Каиржан Бектембаев', position: 'Foreman B',       dept: 'BI Development',    cluster: 'K2-Север' },
+  { id: 3, name: 'Серик Байжанов',     position: 'Site Engineer B', dept: 'BI Development',    cluster: 'K2' },
+  { id: 4, name: 'Каиржан Бектембаев', position: 'Foreman B',       dept: 'BI Development',    cluster: 'K2' },
   { id: 5, name: 'Нурлан Ахметов',     position: 'Foreman A',       dept: 'BI Construction',   cluster: 'K1' },
   { id: 6, name: 'Айдос Молдабеков',   position: 'Foreman C',       dept: 'BI Infrastructure', cluster: 'K1' },
   { id: 7, name: 'Гульнара Есенова',   position: 'Site Engineer A', dept: 'BI Development',    cluster: 'K2-International' },
-  { id: 8, name: 'Тимур Каримов',      position: 'Foreman B',       dept: 'BI Construction',   cluster: 'K2-Юг' },
+  { id: 8, name: 'Тимур Каримов',      position: 'Foreman B',       dept: 'BI Construction',   cluster: 'K2' },
 ]
 
 const CLUSTER_COLORS = {
   'K1':               { bg: '#eff6ff', color: '#2563eb' },
-  'K2-Север':         { bg: '#f0fdf4', color: '#16a34a' },
-  'K2-Юг':            { bg: '#fff7ed', color: '#ea580c' },
+  'K2':               { bg: '#f0fdf4', color: '#16a34a' },
   'K2-International': { bg: '#fdf4ff', color: '#9333ea' },
 }
 
 const ACCENT = '#0f766e'
-const CLUSTERS = ['Все', 'K1', 'K2-Север', 'K2-Юг', 'K2-International']
+const CLUSTERS = ['Все', 'K1', 'K2', 'K2-International']
 
 export default function Employees() {
   const navigate = useNavigate()

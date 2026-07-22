@@ -7,7 +7,7 @@ const POSITIONS = [
   'Site Manager', 'Deputy PM', 'Project Manager',
 ]
 
-const CLUSTERS = ['K1', 'K2-Север', 'K2-Юг', 'K2-International']
+const CLUSTERS = ['K1', 'K2', 'K2-International']
 
 const LEVEL_LABELS = { 0: '—', 1: 'Базовый', 2: 'Средний', 3: 'Продвинутый', 4: 'Эксперт' }
 const LEVEL_COLORS = {
@@ -39,7 +39,7 @@ function makeDefaults() {
         : ['Foreman A', 'Site Engineer A'].includes(pos) ? 3
         : ['Site Manager'].includes(pos) ? 3
         : 4
-      req[pos][skill] = { 'K1': grade, 'K2-Север': grade, 'K2-Юг': grade, 'K2-International': grade }
+      req[pos][skill] = { 'K1': grade, 'K2': grade, 'K2-International': grade }
     })
   })
   return req

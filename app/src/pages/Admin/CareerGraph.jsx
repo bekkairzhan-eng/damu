@@ -20,7 +20,7 @@ const DEFAULT_GRAPHS = {
     { from: 'Site Manager',   to: 'Deputy PM'       },
     { from: 'Deputy PM',      to: 'Project Manager' },
   ],
-  'K2-Север': [
+  'K2': [
     { from: 'Foreman D',      to: 'Foreman C'       },
     { from: 'Foreman C',      to: 'Foreman B'       },
     { from: 'Foreman B',      to: 'Foreman A'       },
@@ -30,14 +30,6 @@ const DEFAULT_GRAPHS = {
     { from: 'Site Engineer C', to: 'Site Engineer B' },
     { from: 'Site Engineer B', to: 'Site Engineer A' },
     { from: 'Site Engineer A', to: 'Site Manager'   },
-    { from: 'Site Manager',   to: 'Deputy PM'       },
-    { from: 'Deputy PM',      to: 'Project Manager' },
-  ],
-  'K2-Юг': [
-    { from: 'Foreman D',      to: 'Foreman C'       },
-    { from: 'Foreman C',      to: 'Foreman B'       },
-    { from: 'Foreman B',      to: 'Foreman A'       },
-    { from: 'Foreman A',      to: 'Site Manager'    },
     { from: 'Site Manager',   to: 'Deputy PM'       },
     { from: 'Deputy PM',      to: 'Project Manager' },
   ],
