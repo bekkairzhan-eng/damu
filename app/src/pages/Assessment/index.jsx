@@ -96,7 +96,7 @@ export default function Assessment() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: 18, fontWeight: 700, color: passedCount === totalCount ? '#16a34a' : '#ea580c' }}>{passedCount}/{totalCount}</div>
-                      <div style={{ fontSize: 11, color: '#7a8fa0' }}>прошёл</div>
+                      <div style={{ fontSize: 11, color: '#7a8fa0' }}>освоено</div>
                     </div>
                     <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#7a8fa0', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>expand_more</span>
                   </div>
@@ -127,7 +127,7 @@ export default function Assessment() {
                           <td style={{ padding: '12px 24px' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, background: skill.passed ? '#f0fdf4' : '#fff7ed', color: skill.passed ? '#16a34a' : '#ea580c' }}>
                               <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{skill.passed ? 'check' : 'close'}</span>
-                              {skill.passed ? 'Пройден' : 'Не пройден'}
+                              {skill.passed ? 'Освоен' : 'Не освоен'}
                             </span>
                           </td>
                           <td style={{ padding: '12px 24px', fontSize: 13, color: '#7a8fa0', lineHeight: 1.4 }}>

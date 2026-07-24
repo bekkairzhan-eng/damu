@@ -4,6 +4,8 @@ const CORP_ITEMS = [
   { id: 1, label: 'Пожертвование в благотворительный Фонд Жулдызай', checked: true, value: null },
   { id: 2, label: 'Индекс эффективности согласования (UnityBPM)', sub: 'Должен быть выше 4.0 из 5.0', checked: true, value: 4.3 },
   { id: 3, label: 'Участие в корпоративных активностях', sub: 'Жестокие игры, корпоративные турниры и т.п.', checked: true, value: null },
+  { id: 4, label: 'Грамоты, государственные награды', checked: true, value: null },
+  { id: 5, label: 'Нахождение в кадровом резерве', checked: true, value: null },
 ]
 
 const learningHistory = [
@@ -141,7 +143,7 @@ export default function ExperienceProfile() {
   })()
 
   const corpChecked = corpItems.filter(i => i.checked).length
-  const corpScore = parseFloat((corpChecked === 3 ? 5.0 : corpChecked === 2 ? 3.3 : corpChecked === 1 ? 1.7 : 0).toFixed(1))
+  const corpScore = corpChecked
 
   const overallScore = parseFloat(
     (RATING_COMPONENTS.reduce((sum, c) => {
@@ -188,7 +190,7 @@ export default function ExperienceProfile() {
                            : c.label === 'Корпоративная активность' ? corpScore
                            : c.score
               const detail = c.label === 'Заполненность профиля' ? profileDetail
-                           : c.label === 'Корпоративная активность' ? `${corpChecked} из 3 выполнено`
+                           : c.label === 'Корпоративная активность' ? `${corpChecked} из 5 выполнено`
                            : c.detail
               const pct = (score / c.max) * 100
               const handleAction = () => {
@@ -400,7 +402,7 @@ export default function ExperienceProfile() {
             Данные заполняются HR-менеджером на основе корпоративных документов
           </div>
           <div style={{ fontSize: 13, fontWeight: 700, color: corpScore === 5 ? '#059669' : '#d97706' }}>
-            {corpChecked} / 3 → {corpScore} баллов
+            {corpChecked} / 5 → {corpScore} баллов
           </div>
         </div>
       </Section>

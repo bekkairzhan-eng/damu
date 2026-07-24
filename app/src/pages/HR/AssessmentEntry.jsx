@@ -130,7 +130,7 @@ export default function AssessmentEntry() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 32px', gap: 16 }}>
         <span className="material-symbols-outlined" style={{ fontSize: 64, color: '#0f766e' }}>check_circle</span>
         <div style={{ fontSize: 22, fontWeight: 700, color: '#0f1923' }}>Оценка завершена</div>
-        <div style={{ fontSize: 14, color: '#7a8fa0' }}>{employee.name} · {passedCount}/{skills.length} навыков пройдено</div>
+        <div style={{ fontSize: 14, color: '#7a8fa0' }}>{employee.name} · {passedCount}/{skills.length} навыков освоено</div>
         <button onClick={() => navigate('/hr')} style={{ marginTop: 16, padding: '10px 28px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           Вернуться к списку
         </button>
@@ -171,10 +171,10 @@ export default function AssessmentEntry() {
                 <div style={{ flex: 1, fontWeight: 500, fontSize: 14, color: '#0f1923' }}>{skill}</div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button onClick={() => !res.passed && togglePassed(skill)} style={{ padding: '5px 14px', borderRadius: 7, border: '2px solid', borderColor: res.passed ? '#16a34a' : '#e8edf2', background: res.passed ? '#f0fdf4' : '#fff', color: res.passed ? '#16a34a' : '#94a3b8', fontSize: 13, fontWeight: res.passed ? 700 : 400, cursor: 'pointer' }}>
-                    ✓ Пройден
+                    ✓ Освоен
                   </button>
                   <button onClick={() => res.passed && togglePassed(skill)} style={{ padding: '5px 14px', borderRadius: 7, border: '2px solid', borderColor: !res.passed ? '#ea580c' : '#e8edf2', background: !res.passed ? '#fff7ed' : '#fff', color: !res.passed ? '#ea580c' : '#94a3b8', fontSize: 13, fontWeight: !res.passed ? 700 : 400, cursor: 'pointer' }}>
-                    ✗ Не пройден
+                    ✗ Не освоен
                   </button>
                 </div>
               </div>
@@ -209,7 +209,7 @@ export default function AssessmentEntry() {
       {/* Summary + submit */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 12, border: '1px solid #e8edf2', padding: '16px 24px' }}>
         <div style={{ fontSize: 14, color: '#0f1923' }}>
-          Итого: <b style={{ color: '#16a34a' }}>{passedCount} пройдено</b> · <b style={{ color: '#ea580c' }}>{skills.length - passedCount} не пройдено</b> из {skills.length}
+          Итого: <b style={{ color: '#16a34a' }}>{passedCount} освоено</b> · <b style={{ color: '#ea580c' }}>{skills.length - passedCount} не освоено</b> из {skills.length}
         </div>
         <button onClick={handleSubmit} style={{ padding: '10px 28px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
           Завершить оценку
