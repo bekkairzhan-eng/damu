@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import SkillDetail from './SkillDetail'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 const CATEGORIES = {
   'Строительные практики': ['Управление строительной площадкой', 'Контроль качества строительства', 'Нормативная база строительства', 'Охрана труда и ТБ', 'Проектная документация'],
@@ -8,6 +9,7 @@ const CATEGORIES = {
   'Lean Construction': ['Lean Construction', 'Последовательное планирование (LPS)', '5S в строительстве', 'Канбан для стройплощадки'],
   'Управление проектами': ['Финансовый контроль проекта', 'Управление субподрядчиками', 'Управление строительными рисками', 'Тендерная документация'],
   'Управление и лидерство': ['Управление командой', 'Коммуникация с заказчиком', 'Наставничество', 'Управление конфликтами', 'Принятие решений', 'Развитие сотрудников'],
+  'IT и цифровизация': ['Python', 'SQL и базы данных', 'Основы DevOps', 'Кибербезопасность: базовый уровень', 'Управление IT-проектами'],
   'Языки (CEFR)': ['Казахский', 'Русский', 'Английский'],
   'Корпоративные стандарты BI Group': ['Корпоративная культура BI Group', 'ESG в строительстве', 'Стандарты BI Development', 'Цифровизация стройплощадки'],
 }
@@ -25,12 +27,29 @@ export default function Skills() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('Все навыки')
   const [selectedSkill, setSelectedSkill] = useState(null)
+  const [myCustomSkills, setMyCustomSkills] = useLocalStorage('myskills:custom', [])
   const { isMobile } = useBreakpoint()
 
   if (selectedSkill) return <SkillDetail skill={selectedSkill} onBack={() => setSelectedSkill(null)} />
 
   function toggleCat(cat) {
     setOpenCats(prev => ({ ...prev, [cat]: !prev[cat] }))
+  }
+
+  // Добавление навыка "в план" — навык не обязательно относится к карьерному треку
+  // (например, IT-навыки для прораба). Появляется в "Мои навыки" без уровня — пока
+  // уровень не выставлен, его можно исключить обратно; как только уровень выставлен,
+  // исключить уже нельзя (см. TASKS.md, раздел «"Мои навыки" — группировка»).
+  function isInPlan(name) {
+    return myCustomSkills.some(s => s.name === name)
+  }
+
+  function addToPlan(name, category) {
+    if (isInPlan(name)) return
+    setMyCustomSkills(prev => [...prev, {
+      name, category, level: null, status: null,
+      confirmed: false, target: false, starred: false, custom: true,
+    }])
   }
 
   return (
@@ -73,19 +92,28 @@ export default function Skills() {
                 <span style={{ fontSize: 14, fontWeight: 600, color: '#0f1923' }}>{cat}</span>
                 <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9aafbd' }}>{filtered.length}</span>
               </button>
-              {openCats[cat] && filtered.map(skill => (
-                <div key={skill} onClick={() => setSelectedSkill(skill)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px 10px 40px', borderBottom: '1px solid #f8f9fc', cursor: 'pointer' }}>
-                  <span style={{ color: '#cdd5e0', fontSize: 14 }}>♡</span>
-                  <div style={{ display: 'flex', gap: 2 }}>
-                    {[1,2,3,4].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: i <= 2 ? '#4361ee' : '#e0e6ef' }} />)}
+              {openCats[cat] && filtered.map(skill => {
+                const inPlan = isInPlan(skill)
+                return (
+                  <div key={skill} onClick={() => setSelectedSkill({ name: skill, category: cat })} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px 10px 40px', borderBottom: '1px solid #f8f9fc', cursor: 'pointer' }}>
+                    <span style={{ color: '#cdd5e0', fontSize: 14 }}>♡</span>
+                    <div style={{ display: 'flex', gap: 2 }}>
+                      {[1,2,3,4].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: i <= 2 ? '#4361ee' : '#e0e6ef' }} />)}
+                    </div>
+                    <span style={{ fontSize: 13, color: '#1a2b3c', flex: 1 }}>{skill}</span>
+                    {POPULARITY[skill] && (
+                      <span style={{ fontSize: 11, color: '#9aafbd' }}>+{POPULARITY[skill]} добавили</span>
+                    )}
+                    <button
+                      onClick={e => { e.stopPropagation(); addToPlan(skill, cat) }}
+                      disabled={inPlan}
+                      style={{ padding: '3px 10px', borderRadius: 6, border: `1px solid ${inPlan ? '#bbf7d0' : '#d0d7e5'}`, background: inPlan ? '#f0fdf4' : '#fff', color: inPlan ? '#16a34a' : '#4361ee', fontSize: 11, cursor: inPlan ? 'default' : 'pointer' }}
+                    >
+                      {inPlan ? '✓ В плане' : 'В план ▾'}
+                    </button>
                   </div>
-                  <span style={{ fontSize: 13, color: '#1a2b3c', flex: 1 }}>{skill}</span>
-                  {POPULARITY[skill] && (
-                    <span style={{ fontSize: 11, color: '#9aafbd' }}>+{POPULARITY[skill]} добавили</span>
-                  )}
-                  <button onClick={e => { e.stopPropagation() }} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #d0d7e5', background: '#fff', color: '#4361ee', fontSize: 11, cursor: 'pointer' }}>В план ▾</button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )
         })}

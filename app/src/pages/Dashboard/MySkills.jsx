@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 
 const SKILL_CATEGORIES = [
   {
@@ -44,12 +45,38 @@ const FILTERS = ['Все', 'Избранные', 'Подтверждённые',
 
 export default function MySkills() {
   const [cats, setCats] = useState(SKILL_CATEGORIES)
+  const [custom, setCustom] = useLocalStorage('myskills:custom', [])
+  const [customOpen, setCustomOpen] = useState({})
   const [activeFilter, setActiveFilter] = useState('Все')
   const [showLegend, setShowLegend] = useState(true)
 
   function toggle(i) {
     setCats(prev => prev.map((c, idx) => idx === i ? { ...c, open: !c.open } : c))
   }
+
+  function toggleCustomCat(name) {
+    setCustomOpen(prev => ({ ...prev, [name]: !(prev[name] ?? true) }))
+  }
+
+  // Навыки, добавленные "в план" из каталога /skills — не обязательно относятся
+  // к карьерному треку. Пока уровень не выставлен (level === null), их можно
+  // исключить обратно; как только уровень выставлен — исключить уже нельзя.
+  function toggleCustomStar(name) {
+    setCustom(prev => prev.map(s => s.name === name ? { ...s, starred: !s.starred } : s))
+  }
+
+  function changeCustomLevel(name, newLevel) {
+    setCustom(prev => prev.map(s => s.name === name ? { ...s, level: newLevel, selfDeclared: true, confirmed: false } : s))
+  }
+
+  function excludeCustom(name) {
+    setCustom(prev => prev.filter(s => !(s.name === name && s.level == null)))
+  }
+
+  const customGroups = custom.reduce((acc, s) => {
+    (acc[s.category] ||= []).push(s)
+    return acc
+  }, {})
 
   function toggleStar(catName, skillName) {
     setCats(prev => prev.map(c =>
@@ -150,7 +177,37 @@ export default function MySkills() {
         )
       })}
 
-      {cats.every(c => filterSkills(c.skills).length === 0) && (
+      {Object.entries(customGroups).map(([catName, skills]) => {
+        const visible = filterSkills(skills)
+        if (visible.length === 0) return null
+        const open = customOpen[catName] ?? true
+        return (
+          <div key={`custom-${catName}`} style={{ marginBottom: 12 }}>
+            <button onClick={() => toggleCustomCat(catName)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#fff', border: '1px solid #e8edf2', borderRadius: open ? '10px 10px 0 0' : 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#0f1923' }}>
+              <span style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s', fontSize: 16 }}>▾</span>
+              {catName}
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#4361ee', background: '#eff6ff', padding: '2px 8px', borderRadius: 10 }}>Добавлено вами</span>
+              <span style={{ marginLeft: 'auto', fontSize: 12, color: '#7a8fa0', fontWeight: 400 }}>{visible.length} навыков</span>
+            </button>
+
+            {open && (
+              <div style={{ border: '1px solid #e8edf2', borderTop: 'none', borderRadius: '0 0 10px 10px', background: '#fff', overflow: 'hidden' }}>
+                {visible.map(s => (
+                  <SkillRow key={s.name} skill={s}
+                    isLanguage={false}
+                    onStar={() => toggleCustomStar(s.name)}
+                    onLevelChange={lvl => changeCustomLevel(s.name, lvl)}
+                    onExclude={s.level == null ? () => excludeCustom(s.name) : undefined}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+
+      {cats.every(c => filterSkills(c.skills).length === 0) &&
+       Object.values(customGroups).every(skills => filterSkills(skills).length === 0) && (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#9aafbd' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 40, display: 'block', marginBottom: 12 }}>search_off</span>
           <div style={{ fontSize: 14 }}>Нет навыков по выбранному фильтру</div>
@@ -162,7 +219,7 @@ export default function MySkills() {
 
 const LEVEL_LABELS = ['', 'Начальный', 'Средний', 'Продвинутый', 'Эксперт']
 
-function SkillRow({ skill, isLanguage, onStar, onLevelChange, onCefrChange }) {
+function SkillRow({ skill, isLanguage, onStar, onLevelChange, onCefrChange, onExclude }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '1px solid #f8f9fc' }}>
       <span
@@ -179,10 +236,22 @@ function SkillRow({ skill, isLanguage, onStar, onLevelChange, onCefrChange }) {
           : <LevelBar level={skill.level} onChange={onLevelChange} />
       }
       <span style={{ flex: 1, fontSize: 13, color: '#1a2b3c' }}>{skill.name}</span>
+      {skill.level == null && skill.custom && <span style={{ fontSize: 11, color: '#9aafbd' }}>Уровень не выставлен</span>}
       {skill.confirmed && <span title="Подтверждён" className="material-symbols-outlined" style={{ fontSize: 14, color: '#059669' }}>verified</span>}
       {skill.selfDeclared && <span title="Самозаявленный" className="material-symbols-outlined" style={{ fontSize: 14, color: '#f59e0b' }}>star</span>}
       {skill.target && <span title="Целевой навык" className="material-symbols-outlined" style={{ fontSize: 14, color: '#4361ee' }}>flag</span>}
-      <span className="material-symbols-outlined" style={{ color: '#cdd5e0', fontSize: 16, cursor: 'pointer' }}>info</span>
+      {onExclude ? (
+        <span
+          onClick={onExclude}
+          title="Исключить из моих навыков (доступно, пока уровень не выставлен)"
+          className="material-symbols-outlined"
+          style={{ fontSize: 16, color: '#ef4444', cursor: 'pointer' }}
+        >
+          close
+        </span>
+      ) : (
+        <span className="material-symbols-outlined" style={{ color: '#cdd5e0', fontSize: 16, cursor: 'pointer' }}>info</span>
+      )}
     </div>
   )
 }

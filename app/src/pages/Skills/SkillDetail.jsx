@@ -23,7 +23,18 @@ const PRACTICAL_TASKS = [
 export default function SkillDetail({ skill, onBack }) {
   const [activeLevel, setActiveLevel] = useState('Базовый')
   const [myLevel, setMyLevel] = useLocalStorage(`skill:myLevel:${skill.name}`, 'Средний')
+  const [myCustomSkills, setMyCustomSkills] = useLocalStorage('myskills:custom', [])
   const LEVELS = ['Базовый', 'Средний', 'Продвинутый', 'Эксперт']
+
+  const inPlan = myCustomSkills.some(s => s.name === skill.name)
+
+  function addToPlan() {
+    if (inPlan) return
+    setMyCustomSkills(prev => [...prev, {
+      name: skill.name, category: skill.category, level: null, status: null,
+      confirmed: false, target: false, starred: false, custom: true,
+    }])
+  }
 
   return (
     <div>
@@ -32,14 +43,20 @@ export default function SkillDetail({ skill, onBack }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f1923' }}>{skill}</h1>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f1923' }}>{skill.name}</h1>
               <span style={{ color: '#cdd5e0', cursor: 'pointer' }}>⋮</span>
               <span style={{ color: '#cdd5e0', cursor: 'pointer' }}>🔗</span>
               <span style={{ color: '#cdd5e0', cursor: 'pointer' }}>♡</span>
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
               <button style={btnPrimary}>Поделиться</button>
-              <button style={btnOutline}>Добавить в план ▾</button>
+              <button
+                onClick={addToPlan}
+                disabled={inPlan}
+                style={inPlan ? { ...btnOutline, borderColor: '#bbf7d0', background: '#f0fdf4', color: '#16a34a', cursor: 'default' } : btnOutline}
+              >
+                {inPlan ? '✓ В плане' : 'Добавить в план ▾'}
+              </button>
               <button style={btnOutline}>Подписаться</button>
               <span style={{ fontSize: 12, color: '#9aafbd', alignSelf: 'center' }}>Обновлено: 1 месяц назад</span>
             </div>
@@ -63,7 +80,7 @@ export default function SkillDetail({ skill, onBack }) {
         <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923', marginBottom: 10 }}>Описание навыка</div>
           <p style={{ fontSize: 13, color: '#4a6275', lineHeight: 1.6, marginBottom: 10 }}>
-            {skill} охватывает способность проектировать и реализовывать решения с применением современных подходов и методологий. Этот навык связывает требования бизнеса с практической реализацией, обеспечивая надёжность и соответствие отраслевым стандартам.
+            {skill.name} охватывает способность проектировать и реализовывать решения с применением современных подходов и методологий. Этот навык связывает требования бизнеса с практической реализацией, обеспечивая надёжность и соответствие отраслевым стандартам.
           </p>
           <button style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer' }}>Показать больше</button>
           <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#7a8fa0' }}>
