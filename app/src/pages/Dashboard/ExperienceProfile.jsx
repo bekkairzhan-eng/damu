@@ -104,6 +104,14 @@ export default function ExperienceProfile() {
     setEnrollSent(false)
   }
 
+  // Самостоятельная подача заявки на обучение — не привязана к истечению
+  // сертификата, курс/программу сотрудник выбирает сам.
+  function openVoluntaryEnroll() {
+    setEnrollCert({ name: '', provider: '', expires: null, type: 'Курс', voluntary: true })
+    setEnrollForm({ date: '', comment: '' })
+    setEnrollSent(false)
+  }
+
   function submitEnroll() {
     setEnrollSent(true)
   }
@@ -407,7 +415,7 @@ export default function ExperienceProfile() {
         </div>
       </Section>
 
-      <Section title="Программы обучения" id="learning-section" warning={
+      <Section title="Программы обучения" id="learning-section" action={<button style={btnPrimary} onClick={openVoluntaryEnroll}>+ Записаться на курс</button>} warning={
         certs.filter(c => c.status === 'Истёк').map(c => (
           <div key={c.name} style={{
             display: 'flex', alignItems: 'center', gap: 14,
@@ -602,7 +610,9 @@ export default function ExperienceProfile() {
               <>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: '#0f1923', marginBottom: 4 }}>Запись на переаттестацию</div>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: '#0f1923', marginBottom: 4 }}>
+                      {enrollCert.voluntary ? 'Запись на обучение' : 'Запись на переаттестацию'}
+                    </div>
                     <div style={{ fontSize: 12, color: '#7a8fa0' }}>Заявка будет направлена менеджеру по обучению</div>
                   </div>
                   <button onClick={() => setEnrollCert(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9aafbd', padding: 0 }}>
@@ -610,20 +620,42 @@ export default function ExperienceProfile() {
                   </button>
                 </div>
 
-                {/* Инфо о сертификате */}
-                <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '12px 14px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#ea580c', flexShrink: 0, marginTop: 1 }}>workspace_premium</span>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e' }}>{enrollCert.name}</div>
-                    <div style={{ fontSize: 11, color: '#b45309', marginTop: 2 }}>Истёк {enrollCert.expires} · {enrollCert.type}</div>
+                {enrollCert.voluntary ? (
+                  <div style={{ background: '#f0f4ff', border: '1px solid #c7d2fe', borderRadius: 10, padding: '12px 14px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#4361ee', flexShrink: 0, marginTop: 1 }}>school</span>
+                    <div style={{ fontSize: 12, color: '#4a6275' }}>Укажите курс или программу, на которую хотите записаться — заявку рассмотрит менеджер по обучению.</div>
                   </div>
-                </div>
+                ) : (
+                  <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '12px 14px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#ea580c', flexShrink: 0, marginTop: 1 }}>workspace_premium</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e' }}>{enrollCert.name}</div>
+                      <div style={{ fontSize: 11, color: '#b45309', marginTop: 2 }}>Истёк {enrollCert.expires} · {enrollCert.type}</div>
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {enrollCert.voluntary && (
+                    <div>
+                      <div style={labelStyle}>Название курса / программы *</div>
+                      <input value={enrollCert.name}
+                        onChange={e => setEnrollCert(c => ({ ...c, name: e.target.value }))}
+                        placeholder="Напр., Управление строительными рисками"
+                        style={inputStyle} />
+                    </div>
+                  )}
                   <div>
-                    <div style={labelStyle}>Организация</div>
-                    <input value={enrollCert.provider} readOnly
-                      style={{ ...inputStyle, background: '#f8f9fc', color: '#4a6275', cursor: 'default' }} />
+                    <div style={labelStyle}>Организация{enrollCert.voluntary ? ' (необязательно)' : ''}</div>
+                    {enrollCert.voluntary ? (
+                      <input value={enrollCert.provider}
+                        onChange={e => setEnrollCert(c => ({ ...c, provider: e.target.value }))}
+                        placeholder="Напр., BI University, BILIM"
+                        style={inputStyle} />
+                    ) : (
+                      <input value={enrollCert.provider} readOnly
+                        style={{ ...inputStyle, background: '#f8f9fc', color: '#4a6275', cursor: 'default' }} />
+                    )}
                   </div>
                   <div>
                     <div style={labelStyle}>Желаемая дата прохождения</div>
@@ -650,7 +682,11 @@ export default function ExperienceProfile() {
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
                   <button onClick={() => setEnrollCert(null)} style={btnOutline}>Отмена</button>
-                  <button onClick={submitEnroll} style={{ ...btnPrimary, background: '#ea580c' }}>
+                  <button
+                    onClick={submitEnroll}
+                    disabled={enrollCert.voluntary && !enrollCert.name.trim()}
+                    style={{ ...btnPrimary, background: enrollCert.voluntary ? '#4361ee' : '#ea580c', opacity: (enrollCert.voluntary && !enrollCert.name.trim()) ? 0.5 : 1 }}
+                  >
                     Отправить заявку
                   </button>
                 </div>
