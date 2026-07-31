@@ -22,35 +22,23 @@ const POPULARITY = {
   'Контроль качества строительства': 189,
 }
 
+// Избранное здесь не показываем — это дело "Мои навыки" (фильтр по своим
+// навыкам). Здесь позже появятся другие фильтры (например, по семейству
+// должностей), пока — только "Все навыки".
+const FILTERS = ['Все навыки']
+
 export default function Skills() {
   const [openCats, setOpenCats] = useState({ 'BIM и технологии': true })
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('Все навыки')
   const [selectedSkill, setSelectedSkill] = useState(null)
-  const { custom, setCustom, findInBase, isFavorite, toggleFavorite } = useSkillFavorite()
+  const { isInPlan, isRemovable, addToPlan, removeFromPlan } = useSkillFavorite()
   const { isMobile } = useBreakpoint()
 
   if (selectedSkill) return <SkillDetail skill={selectedSkill} onBack={() => setSelectedSkill(null)} />
 
   function toggleCat(cat) {
     setOpenCats(prev => ({ ...prev, [cat]: !prev[cat] }))
-  }
-
-  // Добавление навыка "в план" — навык не обязательно относится к карьерному треку
-  // (например, IT-навыки для прораба). Появляется в "Мои навыки" без уровня — пока
-  // уровень не выставлен, его можно исключить обратно; как только уровень выставлен,
-  // исключить уже нельзя (см. TASKS.md, раздел «"Мои навыки" — группировка»).
-  // Если навык уже входит в профиль (карьерный трек и т.п.) — "В план" ему не нужен.
-  function isInPlan(name) {
-    return !!findInBase(name) || custom.some(s => s.name === name)
-  }
-
-  function addToPlan(name, category) {
-    if (isInPlan(name)) return
-    setCustom(prev => [...prev, {
-      name, category, level: null, status: null,
-      confirmed: false, target: false, starred: false, custom: true,
-    }])
   }
 
   return (
@@ -62,7 +50,7 @@ export default function Skills() {
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Введите название навыка" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #d0d7e5', fontSize: 14, outline: 'none', marginBottom: 14 }} />
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['Все навыки', 'Избранные'].map(f => (
+            {FILTERS.map(f => (
               <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 14px', borderRadius: 20, border: 'none', fontSize: isMobile ? 12 : 13, fontWeight: filter === f ? 600 : 400, background: filter === f ? '#0f1923' : '#f0f2f8', color: filter === f ? '#fff' : '#4a6275', cursor: 'pointer' }}>{f}</button>
             ))}
           </div>
@@ -84,10 +72,7 @@ export default function Skills() {
 
       <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
         {Object.entries(CATEGORIES).map(([cat, skills]) => {
-          const filtered = skills.filter(s =>
-            (!search || s.toLowerCase().includes(search.toLowerCase())) &&
-            (filter !== 'Избранные' || isFavorite(s))
-          )
+          const filtered = search ? skills.filter(s => s.toLowerCase().includes(search.toLowerCase())) : skills
           if (!filtered.length) return null
           return (
             <div key={cat}>
@@ -98,16 +83,9 @@ export default function Skills() {
               </button>
               {openCats[cat] && filtered.map(skill => {
                 const inPlan = isInPlan(skill)
+                const removable = isRemovable(skill)
                 return (
                   <div key={skill} onClick={() => setSelectedSkill({ name: skill, category: cat })} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px 10px 40px', borderBottom: '1px solid #f8f9fc', cursor: 'pointer' }}>
-                    <span
-                      onClick={e => { e.stopPropagation(); toggleFavorite(skill, cat) }}
-                      className="material-symbols-outlined"
-                      title={isFavorite(skill) ? 'Убрать из избранного' : 'Добавить в избранное'}
-                      style={{ fontSize: 16, cursor: 'pointer', color: isFavorite(skill) ? '#f59e0b' : '#cdd5e0', fontVariationSettings: isFavorite(skill) ? "'FILL' 1" : "'FILL' 0" }}
-                    >
-                      favorite
-                    </span>
                     <div style={{ display: 'flex', gap: 2 }}>
                       {[1,2,3,4].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: i <= 2 ? '#4361ee' : '#e0e6ef' }} />)}
                     </div>
@@ -116,9 +94,19 @@ export default function Skills() {
                       <span style={{ fontSize: 11, color: '#9aafbd' }}>+{POPULARITY[skill]} добавили</span>
                     )}
                     {inPlan ? (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#16a34a', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#16a34a', fontWeight: 600, whiteSpace: 'nowrap' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span>
                         Уже в ваших навыках
+                        {removable && (
+                          <span
+                            onClick={e => { e.stopPropagation(); removeFromPlan(skill) }}
+                            className="material-symbols-outlined"
+                            title="Убрать из навыков"
+                            style={{ fontSize: 15, color: '#ef4444', cursor: 'pointer' }}
+                          >
+                            close
+                          </span>
+                        )}
                       </span>
                     ) : (
                       <button

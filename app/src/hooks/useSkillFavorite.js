@@ -1,12 +1,13 @@
 import { useLocalStorage } from './useLocalStorage'
 import { DEFAULT_SKILL_CATEGORIES } from '../data/mySkillsData'
 
-// Общее избранное для навыков — используется и в каталоге ("Навыки"), и в
-// "Мои навыки", чтобы переключение в одном месте сразу отражалось в другом.
+// Общее состояние навыков сотрудника — используется и в каталоге ("Навыки"),
+// и на деталке навыка, и в "Мои навыки", чтобы действия в одном месте сразу
+// отражались в другом.
 // `baseCats` — навыки, уже входящие в профиль (карьерный трек и т.п.),
-// `custom` — навыки, добавленные сотрудником самостоятельно вне трека
-// (через "В план" в каталоге или через постановку сердечка на ещё не
-// добавленном навыке — в этом случае запись создаётся без уровня).
+// `custom` — навыки, добавленные сотрудником самостоятельно вне трека через
+// "В план". Уровень новой записи всегда 0 ("не начат") — уровни 1-2-3
+// подтверждаются автоматически из BILIM/TestLab, сотрудник их не выставляет.
 export function useSkillFavorite() {
   const [baseCats, setBaseCats] = useLocalStorage('myskills:base', DEFAULT_SKILL_CATEGORIES)
   const [custom, setCustom] = useLocalStorage('myskills:custom', [])
@@ -19,10 +20,38 @@ export function useSkillFavorite() {
     return null
   }
 
+  function findCustom(name) {
+    return custom.find(s => s.name === name) ?? null
+  }
+
+  function isInPlan(name) {
+    return !!findInBase(name) || !!findCustom(name)
+  }
+
+  // Навык вне трека можно убрать из "Навыки" тем же способом, каким добавили —
+  // но только пока уровень не выставлен (0). Целевые навыки (findInBase) сюда
+  // не попадают — их исключить нельзя никогда.
+  function isRemovable(name) {
+    const c = findCustom(name)
+    return !!c && !findInBase(name) && (c.level ?? 0) === 0
+  }
+
+  function addToPlan(name, category) {
+    if (isInPlan(name)) return
+    setCustom(prev => [...prev, {
+      name, category, level: 0, status: null,
+      confirmed: false, target: false, starred: false, custom: true,
+    }])
+  }
+
+  function removeFromPlan(name) {
+    setCustom(prev => prev.filter(s => !(s.name === name && (s.level ?? 0) === 0)))
+  }
+
   function isFavorite(name) {
     const inBase = findInBase(name)
     if (inBase) return !!inBase.skill.starred
-    return !!custom.find(s => s.name === name)?.starred
+    return !!findCustom(name)?.starred
   }
 
   function toggleFavorite(name, category) {
@@ -34,16 +63,20 @@ export function useSkillFavorite() {
       }))
       return
     }
-    const existing = custom.find(s => s.name === name)
+    const existing = findCustom(name)
     if (existing) {
       setCustom(prev => prev.map(s => s.name === name ? { ...s, starred: !s.starred } : s))
     } else {
       setCustom(prev => [...prev, {
-        name, category, level: null, status: null,
+        name, category, level: 0, status: null,
         confirmed: false, target: false, starred: true, custom: true,
       }])
     }
   }
 
-  return { baseCats, setBaseCats, custom, setCustom, findInBase, isFavorite, toggleFavorite }
+  return {
+    baseCats, setBaseCats, custom, setCustom,
+    findInBase, findCustom, isInPlan, isRemovable, addToPlan, removeFromPlan,
+    isFavorite, toggleFavorite,
+  }
 }

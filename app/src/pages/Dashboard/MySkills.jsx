@@ -4,7 +4,7 @@ import { useSkillFavorite } from '../../hooks/useSkillFavorite'
 const FILTERS = ['Все', 'Избранные', 'Подтверждённые', 'Целевые']
 
 export default function MySkills() {
-  const { baseCats: cats, setBaseCats: setCats, custom, setCustom, toggleFavorite } = useSkillFavorite()
+  const { baseCats: cats, setBaseCats: setCats, custom, setCustom, toggleFavorite, isRemovable, removeFromPlan } = useSkillFavorite()
   const [customOpen, setCustomOpen] = useState({})
   const [activeFilter, setActiveFilter] = useState('Все')
   const [showLegend, setShowLegend] = useState(true)
@@ -27,10 +27,6 @@ export default function MySkills() {
   // доступный только когда уровень 3 уже подтверждён.
   function requestExpertCustom(name) {
     setCustom(prev => prev.map(s => s.name === name ? { ...s, expertPending: true } : s))
-  }
-
-  function excludeCustom(name) {
-    setCustom(prev => prev.filter(s => !(s.name === name && s.level == null)))
   }
 
   const customGroups = custom.reduce((acc, s) => {
@@ -138,7 +134,7 @@ export default function MySkills() {
                     isLanguage={false}
                     onStar={() => toggleFavorite(s.name, catName)}
                     onRequestExpert={() => requestExpertCustom(s.name)}
-                    onExclude={s.level == null ? () => excludeCustom(s.name) : undefined}
+                    onExclude={isRemovable(s.name) ? () => removeFromPlan(s.name) : undefined}
                   />
                 ))}
               </div>
@@ -179,7 +175,7 @@ function SkillRow({ skill, isLanguage, onStar, onRequestExpert, onExclude }) {
           : <LevelBar level={skill.level} />
       }
       <span style={{ flex: 1, fontSize: 13, color: '#1a2b3c' }}>{skill.name}</span>
-      {skill.level == null && skill.custom && <span style={{ fontSize: 11, color: '#9aafbd' }}>Уровень не выставлен — ждём данные от BILIM</span>}
+      {!skill.level && skill.custom && <span style={{ fontSize: 11, color: '#9aafbd' }}>Уровень не выставлен — ждём данные от BILIM</span>}
       {skill.confirmed && <span title="Подтверждён" className="material-symbols-outlined" style={{ fontSize: 14, color: '#059669' }}>verified</span>}
       {skill.selfDeclared && !skill.expertPending && <span title="Ожидает подтверждения (BILIM/TestLab)" className="material-symbols-outlined" style={{ fontSize: 14, color: '#f59e0b' }}>hourglass_empty</span>}
       {skill.target && <span title="Целевой навык" className="material-symbols-outlined" style={{ fontSize: 14, color: '#4361ee' }}>flag</span>}
