@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useSkillFavorite } from '../../hooks/useSkillFavorite'
 
 const LEVELS_INFO = {
   'Базовый': 'На этом уровне присутствует базовое понимание, но практический опыт ограничен. Основные концепции известны, но ещё не применяются самостоятельно.',
@@ -20,20 +20,42 @@ const PRACTICAL_TASKS = [
   { title: 'Провести обучение для прорабов A по навыку', start: '13 Фев 2026', workload: '3–5 ч/нед' },
 ]
 
+const LEVEL_DOT_LABELS = ['', 'Начальный', 'Средний', 'Продвинутый', 'Эксперт']
+
 export default function SkillDetail({ skill, onBack }) {
   const [activeLevel, setActiveLevel] = useState('Базовый')
-  const [myLevel, setMyLevel] = useLocalStorage(`skill:myLevel:${skill.name}`, 'Средний')
-  const [myCustomSkills, setMyCustomSkills] = useLocalStorage('myskills:custom', [])
+  const { setBaseCats, custom, setCustom, findInBase, isFavorite, toggleFavorite } = useSkillFavorite()
   const LEVELS = ['Базовый', 'Средний', 'Продвинутый', 'Эксперт']
 
-  const inPlan = myCustomSkills.some(s => s.name === skill.name)
+  // Уровень навыка сотрудник не выставляет сам — приходит из BILIM (1-2) / TestLab (3)
+  // автоматически. Единственное ручное действие здесь — запрос подтверждения
+  // уровня 4 (Эксперт), доступный только когда уровень 3 уже подтверждён.
+  // Навык может уже быть частью профиля (карьерный трек, `baseCats`) либо
+  // добавлен самостоятельно (`custom`) — работаем с тем, что найдётся.
+  const inBase = findInBase(skill.name)
+  const customEntry = custom.find(s => s.name === skill.name)
+  const inPlan = !!inBase || !!customEntry
+  const currentLevel = inBase ? (inBase.skill.level ?? null) : (customEntry?.level ?? null)
+  const expertPending = inBase ? !!inBase.skill.expertPending : !!customEntry?.expertPending
+  const canRequestExpert = currentLevel === 3 && !expertPending
 
   function addToPlan() {
     if (inPlan) return
-    setMyCustomSkills(prev => [...prev, {
+    setCustom(prev => [...prev, {
       name: skill.name, category: skill.category, level: null, status: null,
       confirmed: false, target: false, starred: false, custom: true,
     }])
+  }
+
+  function requestExpert() {
+    if (inBase) {
+      setBaseCats(prev => prev.map(cat => cat.name !== inBase.categoryName ? cat : {
+        ...cat,
+        skills: cat.skills.map(s => s.name === skill.name ? { ...s, expertPending: true } : s),
+      }))
+    } else {
+      setCustom(prev => prev.map(s => s.name === skill.name ? { ...s, expertPending: true } : s))
+    }
   }
 
   return (
@@ -46,32 +68,56 @@ export default function SkillDetail({ skill, onBack }) {
               <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f1923' }}>{skill.name}</h1>
               <span style={{ color: '#cdd5e0', cursor: 'pointer' }}>⋮</span>
               <span style={{ color: '#cdd5e0', cursor: 'pointer' }}>🔗</span>
-              <span style={{ color: '#cdd5e0', cursor: 'pointer' }}>♡</span>
+              <span
+                onClick={() => toggleFavorite(skill.name, skill.category)}
+                className="material-symbols-outlined"
+                title={isFavorite(skill.name) ? 'Убрать из избранного' : 'Добавить в избранное'}
+                style={{ fontSize: 20, cursor: 'pointer', color: isFavorite(skill.name) ? '#f59e0b' : '#cdd5e0', fontVariationSettings: isFavorite(skill.name) ? "'FILL' 1" : "'FILL' 0" }}
+              >
+                favorite
+              </span>
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
               <button style={btnPrimary}>Поделиться</button>
-              <button
-                onClick={addToPlan}
-                disabled={inPlan}
-                style={inPlan ? { ...btnOutline, borderColor: '#bbf7d0', background: '#f0fdf4', color: '#16a34a', cursor: 'default' } : btnOutline}
-              >
-                {inPlan ? '✓ В плане' : 'Добавить в план ▾'}
-              </button>
+              {inPlan ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#16a34a', fontWeight: 600, alignSelf: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                  Уже в ваших навыках
+                </span>
+              ) : (
+                <button onClick={addToPlan} style={btnOutline}>Добавить в план ▾</button>
+              )}
               <button style={btnOutline}>Подписаться</button>
               <span style={{ fontSize: 12, color: '#9aafbd', alignSelf: 'center' }}>Обновлено: 1 месяц назад</span>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: '#9aafbd', marginBottom: 6 }}>Укажите свой уровень навыка</div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: '#7a8fa0' }}>Самозаявленный уровень:</span>
-              <select value={myLevel} onChange={e => setMyLevel(e.target.value)} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #d0d7e5', fontSize: 12, color: '#4361ee', fontWeight: 600, outline: 'none' }}>
-                {LEVELS.map(l => <option key={l}>{l}</option>)}
-              </select>
-            </div>
-            <div style={{ display: 'flex', gap: 3, marginTop: 8, justifyContent: 'flex-end' }}>
-              {LEVELS.map((l, i) => <div key={l} style={{ width: 18, height: 18, borderRadius: 4, background: i < LEVELS.indexOf(myLevel) + 1 ? '#4361ee' : '#e0e6ef' }} />)}
-            </div>
+            {inPlan ? (
+              <>
+                <div style={{ fontSize: 11, color: '#9aafbd', marginBottom: 6 }}>Уровень владения</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#4361ee' }}>
+                  {currentLevel ? LEVEL_DOT_LABELS[currentLevel] : 'Не начат'}
+                </div>
+                <div style={{ display: 'flex', gap: 3, marginTop: 8, justifyContent: 'flex-end' }}>
+                  {[1, 2, 3, 4].map(i => <div key={i} style={{ width: 18, height: 18, borderRadius: 4, background: i <= (currentLevel ?? 0) ? '#4361ee' : '#e0e6ef' }} />)}
+                </div>
+                {currentLevel == null && (
+                  <div style={{ fontSize: 11, color: '#9aafbd', marginTop: 8, maxWidth: 200 }}>Уровень подтверждается автоматически через BILIM/TestLab</div>
+                )}
+                {canRequestExpert && (
+                  <button onClick={requestExpert} style={{ marginTop: 10, padding: '6px 14px', borderRadius: 7, border: '1px solid #4361ee', background: '#fff', color: '#4361ee', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    Запросить эксперта →
+                  </button>
+                )}
+                {expertPending && (
+                  <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 6, background: '#fff7ed', color: '#ea580c', fontSize: 12, fontWeight: 600 }}>
+                    Ожидает эксперта
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 11, color: '#9aafbd', maxWidth: 180 }}>Добавьте навык в план, чтобы отслеживать уровень</div>
+            )}
           </div>
         </div>
       </div>

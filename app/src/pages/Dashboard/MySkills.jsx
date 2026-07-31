@@ -1,51 +1,10 @@
 import { useState } from 'react'
-import { useLocalStorage } from '../../hooks/useLocalStorage'
-
-const SKILL_CATEGORIES = [
-  {
-    name: 'Языки (CEFR)', open: true, isLanguage: true,
-    skills: [
-      { name: 'Казахский',  confirmed: true,   target: true,  starred: false, native: true },
-      { name: 'Русский',    confirmed: true,   target: false, starred: false, native: true },
-      { name: 'Английский', selfDeclared: true, target: false, starred: false, cefr: 'B1' },
-    ],
-  },
-  {
-    name: 'Строительные практики', open: true,
-    skills: [
-      { name: 'Управление строительной площадкой', level: 3, confirmed: true, target: true, starred: false },
-      { name: 'Контроль качества строительства', level: 3, confirmed: true, target: true, starred: false },
-      { name: 'Охрана труда и техника безопасности', level: 4, confirmed: true, target: true, starred: false },
-      { name: 'Нормативная база строительства', level: 3, selfDeclared: true, target: true, starred: false },
-      { name: 'Проектная документация', level: 2, selfDeclared: true, target: false, starred: false },
-    ],
-  },
-  {
-    name: 'Технологии', open: false,
-    skills: [
-      { name: 'BIM-технологии (Revit)', level: 2, selfDeclared: true, target: true, starred: false },
-      { name: 'AutoCAD', level: 2, selfDeclared: true, target: true, starred: false },
-      { name: 'MS Project', level: 1, selfDeclared: true, target: true, starred: false },
-      { name: 'Lean Construction', level: 2, selfDeclared: true, target: true, starred: false },
-    ],
-  },
-  {
-    name: 'Управление и лидерство', open: false,
-    skills: [
-      { name: 'Управление командой', level: 3, confirmed: true, target: true, starred: false },
-      { name: 'Управление субподрядчиками', level: 2, selfDeclared: true, target: true, starred: false },
-      { name: 'Финансовый контроль проекта', level: 2, selfDeclared: true, target: true, starred: false },
-      { name: 'Решение конфликтов', level: 2, selfDeclared: true, target: false, starred: false },
-      { name: 'Коммуникация с заказчиком', level: 3, confirmed: true, target: true, starred: false },
-    ],
-  },
-]
+import { useSkillFavorite } from '../../hooks/useSkillFavorite'
 
 const FILTERS = ['Все', 'Избранные', 'Подтверждённые', 'Целевые']
 
 export default function MySkills() {
-  const [cats, setCats] = useState(SKILL_CATEGORIES)
-  const [custom, setCustom] = useLocalStorage('myskills:custom', [])
+  const { baseCats: cats, setBaseCats: setCats, custom, setCustom, toggleFavorite } = useSkillFavorite()
   const [customOpen, setCustomOpen] = useState({})
   const [activeFilter, setActiveFilter] = useState('Все')
   const [showLegend, setShowLegend] = useState(true)
@@ -61,12 +20,13 @@ export default function MySkills() {
   // Навыки, добавленные "в план" из каталога /skills — не обязательно относятся
   // к карьерному треку. Пока уровень не выставлен (level === null), их можно
   // исключить обратно; как только уровень выставлен — исключить уже нельзя.
-  function toggleCustomStar(name) {
-    setCustom(prev => prev.map(s => s.name === name ? { ...s, starred: !s.starred } : s))
-  }
-
-  function changeCustomLevel(name, newLevel) {
-    setCustom(prev => prev.map(s => s.name === name ? { ...s, level: newLevel, selfDeclared: true, confirmed: false } : s))
+  //
+  // Уровни 1-3 сотрудник не выставляет сам — они приходят автоматически из
+  // BILIM (1-2) и TestLab (3). Единственное ручное действие — запрос
+  // подтверждения уровня 4 (Эксперт) у руководителя/эксперта через BPM,
+  // доступный только когда уровень 3 уже подтверждён.
+  function requestExpertCustom(name) {
+    setCustom(prev => prev.map(s => s.name === name ? { ...s, expertPending: true } : s))
   }
 
   function excludeCustom(name) {
@@ -78,29 +38,11 @@ export default function MySkills() {
     return acc
   }, {})
 
-  function toggleStar(catName, skillName) {
+  function requestExpert(catName, skillName) {
     setCats(prev => prev.map(c =>
       c.name !== catName ? c : {
         ...c,
-        skills: c.skills.map(s => s.name !== skillName ? s : { ...s, starred: !s.starred })
-      }
-    ))
-  }
-
-  function changeLevel(catName, skillName, newLevel) {
-    setCats(prev => prev.map(c =>
-      c.name !== catName ? c : {
-        ...c,
-        skills: c.skills.map(s => s.name !== skillName ? s : { ...s, level: newLevel, selfDeclared: true, confirmed: false })
-      }
-    ))
-  }
-
-  function changeCefr(catName, skillName, newCefr) {
-    setCats(prev => prev.map(c =>
-      c.name !== catName ? c : {
-        ...c,
-        skills: c.skills.map(s => s.name !== skillName ? s : { ...s, cefr: newCefr, selfDeclared: true, confirmed: false })
+        skills: c.skills.map(s => s.name !== skillName ? s : { ...s, expertPending: true })
       }
     ))
   }
@@ -166,9 +108,8 @@ export default function MySkills() {
                 {visible.map(s => (
                   <SkillRow key={s.name} skill={s}
                     isLanguage={cat.isLanguage}
-                    onStar={() => toggleStar(cat.name, s.name)}
-                    onLevelChange={lvl => changeLevel(cat.name, s.name, lvl)}
-                    onCefrChange={lvl => changeCefr(cat.name, s.name, lvl)}
+                    onStar={() => toggleFavorite(s.name, cat.name)}
+                    onRequestExpert={() => requestExpert(cat.name, s.name)}
                   />
                 ))}
               </div>
@@ -195,8 +136,8 @@ export default function MySkills() {
                 {visible.map(s => (
                   <SkillRow key={s.name} skill={s}
                     isLanguage={false}
-                    onStar={() => toggleCustomStar(s.name)}
-                    onLevelChange={lvl => changeCustomLevel(s.name, lvl)}
+                    onStar={() => toggleFavorite(s.name, catName)}
+                    onRequestExpert={() => requestExpertCustom(s.name)}
                     onExclude={s.level == null ? () => excludeCustom(s.name) : undefined}
                   />
                 ))}
@@ -219,7 +160,9 @@ export default function MySkills() {
 
 const LEVEL_LABELS = ['', 'Начальный', 'Средний', 'Продвинутый', 'Эксперт']
 
-function SkillRow({ skill, isLanguage, onStar, onLevelChange, onCefrChange, onExclude }) {
+function SkillRow({ skill, isLanguage, onStar, onRequestExpert, onExclude }) {
+  const canRequestExpert = skill.level === 3 && !skill.expertPending
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '1px solid #f8f9fc' }}>
       <span
@@ -232,14 +175,28 @@ function SkillRow({ skill, isLanguage, onStar, onLevelChange, onCefrChange, onEx
       {skill.native
         ? <span style={{ fontSize: 10, fontWeight: 700, background: '#d1fae5', color: '#059669', padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', flexShrink: 0 }}>Родной</span>
         : isLanguage
-          ? <CefrBadge value={skill.cefr} confirmed={skill.confirmed} onChange={onCefrChange} />
-          : <LevelBar level={skill.level} onChange={onLevelChange} />
+          ? <CefrBadge value={skill.cefr} confirmed={skill.confirmed} />
+          : <LevelBar level={skill.level} />
       }
       <span style={{ flex: 1, fontSize: 13, color: '#1a2b3c' }}>{skill.name}</span>
-      {skill.level == null && skill.custom && <span style={{ fontSize: 11, color: '#9aafbd' }}>Уровень не выставлен</span>}
+      {skill.level == null && skill.custom && <span style={{ fontSize: 11, color: '#9aafbd' }}>Уровень не выставлен — ждём данные от BILIM</span>}
       {skill.confirmed && <span title="Подтверждён" className="material-symbols-outlined" style={{ fontSize: 14, color: '#059669' }}>verified</span>}
-      {skill.selfDeclared && <span title="Самозаявленный" className="material-symbols-outlined" style={{ fontSize: 14, color: '#f59e0b' }}>star</span>}
+      {skill.selfDeclared && !skill.expertPending && <span title="Ожидает подтверждения (BILIM/TestLab)" className="material-symbols-outlined" style={{ fontSize: 14, color: '#f59e0b' }}>hourglass_empty</span>}
       {skill.target && <span title="Целевой навык" className="material-symbols-outlined" style={{ fontSize: 14, color: '#4361ee' }}>flag</span>}
+      {canRequestExpert && (
+        <button
+          onClick={onRequestExpert}
+          style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #4361ee', background: '#fff', color: '#4361ee', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          Запросить эксперта →
+        </button>
+      )}
+      {skill.expertPending && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 6, background: '#fff7ed', color: '#ea580c', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 13 }}>hourglass_empty</span>
+          Ожидает эксперта
+        </span>
+      )}
       {onExclude ? (
         <span
           onClick={onExclude}
@@ -256,64 +213,39 @@ function SkillRow({ skill, isLanguage, onStar, onLevelChange, onCefrChange, onEx
   )
 }
 
-const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-
-function CefrBadge({ value, confirmed, onChange }) {
-  const [open, setOpen] = useState(false)
-
+function CefrBadge({ value, confirmed }) {
+  // Уровень CEFR больше не редактируется сотрудником напрямую — подтверждается
+  // через BILIM/TestLab так же, как и числовые уровни навыков (см. LevelBar).
   return (
-    <div style={{ position: 'relative', flexShrink: 0 }}>
-      <span
-        onClick={() => setOpen(o => !o)}
-        title="Нажмите чтобы изменить уровень"
-        style={{
-          display: 'inline-block', fontSize: 11, fontWeight: 700,
-          background: confirmed ? '#059669' : '#e0e6ef',
-          color: confirmed ? '#fff' : '#4a6275',
-          padding: '3px 8px', borderRadius: 6, cursor: 'pointer',
-          whiteSpace: 'nowrap', minWidth: 32, textAlign: 'center',
-        }}
-      >
-        {value ?? '—'}
-      </span>
-      {open && (
-        <div style={{
-          position: 'absolute', left: 0, top: '100%', marginTop: 4, zIndex: 50,
-          background: '#fff', border: '1px solid #e8edf2', borderRadius: 10,
-          boxShadow: '0 6px 20px rgba(0,0,0,0.12)', padding: 6,
-          display: 'flex', flexDirection: 'column', gap: 2,
-        }}>
-          {CEFR_LEVELS.map(lvl => (
-            <button key={lvl} onClick={() => { onChange(lvl); setOpen(false) }} style={{
-              padding: '5px 16px', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-              background: lvl === value ? '#059669' : 'transparent',
-              color: lvl === value ? '#fff' : '#1a2b3c',
-              textAlign: 'left',
-            }}>{lvl}</button>
-          ))}
-        </div>
-      )}
-    </div>
+    <span
+      title={confirmed ? 'Подтверждено' : 'Ожидает подтверждения'}
+      style={{
+        display: 'inline-block', fontSize: 11, fontWeight: 700,
+        background: confirmed ? '#059669' : '#e0e6ef',
+        color: confirmed ? '#fff' : '#4a6275',
+        padding: '3px 8px', borderRadius: 6,
+        whiteSpace: 'nowrap', minWidth: 32, textAlign: 'center', flexShrink: 0,
+      }}
+    >
+      {value ?? '—'}
+    </span>
   )
 }
 
-function LevelBar({ level, onChange }) {
+function LevelBar({ level }) {
   const [hovered, setHovered] = useState(null)
-  const active = hovered ?? level
 
   return (
     <div style={{ display: 'flex', gap: 3, alignItems: 'center', position: 'relative' }}>
       {[1,2,3,4].map(i => (
         <div
           key={i}
-          onClick={() => onChange(i)}
           onMouseEnter={() => setHovered(i)}
           onMouseLeave={() => setHovered(null)}
           title={LEVEL_LABELS[i]}
           style={{
-            width: 12, height: 12, borderRadius: 3, cursor: 'pointer',
-            background: i <= active ? (hovered ? '#34d399' : '#059669') : '#e0e6ef',
-            transition: 'background 0.1s',
+            width: 12, height: 12, borderRadius: 3,
+            background: i <= (level ?? 0) ? '#059669' : '#e0e6ef',
           }}
         />
       ))}
@@ -332,10 +264,10 @@ function LevelBar({ level, onChange }) {
 
 function LegendInline({ onClose }) {
   const icons = [
-    { icon: 'star',       color: '#f59e0b', fill: true,  label: 'Навык добавлен в избранное' },
-    { icon: 'flag',       color: '#4361ee', fill: false,  label: 'Целевой навык из карьерного плана' },
-    { icon: 'verified',   color: '#059669', fill: false, label: 'Подтверждён аттестацией или руководителем' },
-    { icon: 'star',       color: '#f59e0b', fill: false, label: 'Самозаявленный навык (ожидает подтверждения)' },
+    { icon: 'star',            color: '#f59e0b', fill: true,  label: 'Навык добавлен в избранное' },
+    { icon: 'flag',             color: '#4361ee', fill: false, label: 'Целевой навык из карьерного плана' },
+    { icon: 'verified',        color: '#059669', fill: false, label: 'Подтверждён — BILIM, TestLab или эксперт' },
+    { icon: 'hourglass_empty', color: '#f59e0b', fill: false, label: 'Ожидает подтверждения (BILIM/TestLab) — сам сотрудник уровень не выставляет' },
   ]
 
   const levels = [
