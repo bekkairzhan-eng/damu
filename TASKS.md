@@ -250,10 +250,12 @@ BI Damu встраивается в мобильное приложение **BI
 |---------|------------------------|-----|
 | 1 — Базовый | **BILIM (LMS)** | Автоматически, по результатам курса/теста в BILIM |
 | 2 — Средний | **BILIM (LMS)** | Автоматически, аналогично уровню 1 |
-| 3 — Продвинутый | **TestLab** (система тестирования, новая интеграция) | По результатам тестирования в TestLab |
+| 3 — Продвинутый | **TestLab** (система тестирования, новая интеграция) | Через тест TestLab, который админ привязал к навыку (см. ниже) |
 | 4 — Эксперт | Эксперт — скорее всего **непосредственный руководитель / РП проекта** (роль "Руководитель" в системе пока не заведена, см. раздел «Роли в системе») | Ручной апрув через UnityBPM |
 
-> **Открыто:** точный механизм подтверждения через BILIM (по факту завершения курса? по проходному баллу теста?) и через TestLab (какой скор/порог считается «подтверждено») — не описан нигде, уточнить отдельно с командами BILIM/TestLab перед проектированием интеграции.
+**Механика подтверждения уровня 3 — решено 07.08.2026.** В каталоге навыков (`/admin/skills/:id`, вкладка «Продвинутый») админ привязывает к навыку конкретный тест из справочника тестов TestLab — выбор из списка (`testlab_test_id`), а не произвольная ссылка на программу. Проверка результата — не в реальном времени сразу после теста, а отдельным периодическим процессом **раз в полгода** (это не тот же ночной батч, что пересчёт `profile_rating` — см. раздел «Рейтинг профиля», расписание для этого процесса пока не спроектировано): система смотрит, прошёл ли сотрудник привязанный к навыку тест, и если да — автоматически подтверждает уровень 3 без участия HR/эксперта. Справочник тестов в прототипе — статический список (`data/testlabTests.js`), в реальности будет синхронизироваться из TestLab.
+
+> **Открыто:** точный триггер подтверждения уровня 1–2 в BILIM (по факту завершения курса? по проходному баллу теста?) — не описан, уточнить с командой BILIM. Для уровня 3 механика на стороне Damu решена (привязка навык↔тест + проверка раз в полгода при ранжировании, см. выше), но контракт с самим TestLab (как считается «прошёл» конкретный тест — балл, процент, факт участия?) — всё ещё не определён, уточнить с командой TestLab.
 
 Файлы-доказательства не требуются на уровне 4. Эксперт принимает решение на основе своего профессионального суждения.
 
@@ -324,7 +326,8 @@ BI Damu встраивается в мобильное приложение **BI
 | `position` | id, name, grade, description, salary_min?, salary_max? | 1С / HRMS (вилки) | — |
 | `cluster` | id, name (K1 / K2 / K2-International) | Damu | — |
 | `career_graph_edge` | cluster_id, from_position_id, to_position_id | Damu (Admin) | → cluster, position ×2 |
-| `skill` | id, name, category, approver_rule? | Damu (Admin) | — |
+| `skill` | id, name, category, approver_rule?, description, level_content (per-level: описание + ссылка на курс BILIM для 1–2, `testlab_test_id` для 3, только описание для 4), materials (база знаний + обязательный учебный путь) | Damu (Admin, `/admin/skills/:id`) | → testlab_test (уровень 3) |
+| `testlab_test` | id, name | Damu (Admin, вручную) / в перспективе синк из TestLab | ← skill (через `level_content.testlab_test_id`) |
 | `requirement` | position_id, cluster_id, skill_id, required_level (0–4) | Damu (Admin) | → position, cluster, skill |
 | `employee_skill` | employee_id, skill_id, current_level?, status? (pending / confirmed / rejected), confirmed_via (bilim / testlab / expert), confirmed_by, confirmed_at, **is_favorite** (новое) | Damu | → employee, skill. Не ограничена `requirements` — можно добавить любой навык каталога, "целевой" — вычисляется join'ом, не хранится |
 | `career_plan` | id, employee_id, target_position_id, status (active / completed / replaced), created_at | Damu | → employee, position |
@@ -357,7 +360,7 @@ BI Damu встраивается в мобильное приложение **BI
 | Карьерный план (`MyPlans`, `CareerPlanDetail`) | localStorage `careermap:goal` + хардкод | `GET /api/me/plans`, `GET /api/plans/:id` |
 | Карьерный трек (`CareerMap`) | `CAREER_GRAPH`, `POSITION_DATA` | `GET /api/career-graph?cluster=`, `POST /api/me/goal` |
 | Должности (`Titles`) | хардкод + вилки | `GET /api/positions` |
-| Каталог навыков (`Skills`) | хардкод | `GET /api/skills` |
+| Каталог навыков (`Skills`, `Мои навыки`, `Требования`, `Должности`, план развития, аттестация) | единый хардкод `app/src/data/skillsCatalog.js` — до 07.08.2026 было расхождение названий/категорий по каждому экрану, объединено в один источник | `GET /api/skills` |
 | Аттестация — история (`Assessment`) | `MOCK_HISTORY` | `GET /api/me/assessments` |
 | HR — очередь (`HRDashboard`) | `MOCK_PENDING/COMPLETED` | `GET /api/hr/assessments?status=` |
 | HR — ввод оценки (`AssessmentEntry`) | localStorage | `POST /api/hr/assessments/:id/result` |
@@ -365,7 +368,9 @@ BI Damu встраивается в мобильное приложение **BI
 | Заявка на обучение — история (сотрудник) | **нет в прототипе, новый экран** | `GET /api/me/training-requests` |
 | HR — добавить сертификат сотруднику (`AddCertificate`) | localStorage (`hr:certificates`, `hr:training-requests`) | `GET /api/hr/training-requests/match-check`, `POST /api/hr/certificates` |
 | HR — справочник сотрудников (`Employees`) | `MOCK_EMPLOYEES` в коде | `GET /api/hr/employees` (см. BACKEND_SPEC.md 5.9) |
-| Admin — навыки | localStorage | CRUD `/api/admin/skills` |
+| Admin — навыки (название/категория/апрувер) | localStorage | CRUD `/api/admin/skills` |
+| Admin — контент навыка (описание, по уровням, материалы) — `SkillContentEditor` | localStorage (`admin:skills`) | `PUT /api/admin/skills/:id/content` |
+| Admin — справочник тестов TestLab | статический список в коде (`data/testlabTests.js`) | `GET/POST /api/admin/testlab-tests` (позже — синк из TestLab) |
 | Admin — должности | localStorage | CRUD `/api/admin/positions` |
 | Admin — карьерный граф | localStorage | CRUD `/api/admin/career-graph` |
 | Admin — требования | localStorage | `PUT /api/admin/requirements` |
@@ -408,9 +413,9 @@ HRD разослал письмо командам с Excel-шаблоном д�
 |---|---|---|
 | Профиль должности | Есть — `positions.description`, «Общие требования» в `Titles.jsx` (текст по категориям на 4 уровня) | Хардкод только для линейки Foreman/Site Manager |
 | Профиль компетенций | Хорошо покрыто — `requirements` (должность × кластер × навык → уровень 0–4) | — |
-| Карта развития компетенций | Слабо — `plan_learning_item` привязан к плану конкретного сотрудника, не к навыку как к справочнику. Блоки «Обучающие материалы»/«Практические задачи» в `SkillDetail.jsx` — одинаковый хардкод для любого навыка | Нужна новая сущность: способы развития (обучение, наставничество, проект, сертификация) на уровне справочника навыков |
+| Карта развития компетенций | **Решено и реализовано 07.08.2026** — описание навыка, per-level описание (курс BILIM для 1–2, тест TestLab для 3), учебные материалы (база знаний + обязательный учебный путь) — всё на уровне справочника навыков (`/admin/skills/:id`), не только внутри плана сотрудника | Наставничество/проект/сертификация как отдельные типы способов развития не смоделированы — есть только описание+ссылка/тест+материалы |
 | Карьерные возможности (верт. + гориз., кадровый резерв, преемники) | Есть только вертикаль — `career_graph_edges` внутри одного кластера | Горизонтальные переходы между функциями, кадровый резерв, преемники — не описаны нигде, выходят за рамки текущего MVP (только ИТР, только вертикаль) |
-| Описание уровней компетенций | По факту нет — `LEVELS_INFO` в `SkillDetail.jsx` один и тот же текст на уровень независимо от навыка | Нужна таблица `skill_level_description` (skill_id × уровень × текст) и реальные данные вместо генерик-текста |
+| Описание уровней компетенций | **Решено и реализовано 07.08.2026** — текст на каждый из 4 уровней теперь per-skill (не общий `LEVELS_INFO`), заполняется админом в `/admin/skills/:id` | Пока заполнено только для одного демо-навыка (BIM-технологии (Revit)) — для остальных 45 навыков пусто, ждёт заполнения администратором |
 
 ---
 

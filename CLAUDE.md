@@ -45,6 +45,10 @@ npm run preview  # Превью продакшен-сборки
 | `careermap:zoom` | CareerMap | Масштаб карты |
 | `careermap:tour-seen` | CareerMap | Завершён ли онбординг-тур |
 | `theme:dark` | ProfileContext | Переключатель тёмной темы |
+| `admin:skills` | SkillsCatalog, SkillContentEditor, Skills, SkillDetail, MySkills (через `mySkillsData.js`) | Каталог навыков — единственный источник данных о навыках, см. «Каталог навыков» ниже |
+| `myskills:base` / `myskills:custom` | `useSkillFavorite` (MySkills, Skills, SkillDetail) | Навыки в профиле сотрудника: карьерный трек / добавленные самостоятельно |
+
+Таблица не исчерпывающая — есть и другие ключи (`admin:requirements`, `hr:*`, `assessment:*`, `dashboard:*`, `auth:roles`), см. по коду через `useLocalStorage`.
 
 ### Логика CareerMap (`app/src/pages/CareerMap.jsx`)
 
@@ -68,9 +72,27 @@ npm run preview  # Превью продакшен-сборки
 
 `app/src/pages/MyPlans/CareerPlanDetail.jsx` — три вкладки: требования к навыкам, план обучения, готовность к оценке. Вкладка готовности считает обязательные пункты из `LEARNING_PLAN` (из `careerPlan1.js`), исключая категорию `'Рекомендуемые курсы'` и пункты, в названии которых есть `'казахский'` (учитывается отдельно).
 
+### Каталог навыков (`app/src/data/skillsCatalog.js`)
+
+Единственный источник правды по навыкам во всём прототипе (объединено 07.08.2026 — раньше `/admin/skills`, `/skills`, «Мои навыки», `Requirements.jsx`, `Titles.jsx`, `careerPlan1.js` и другие экраны хардкодили свои несовпадающие списки названий/категорий). Экспортирует:
+- `CATEGORIES` — 8 категорий, порядок используется везде, где нужно сгруппировать навыки одинаково
+- `INITIAL_SKILLS` — 46 навыков: `{id, name, category, approver, description, levels, materials}`. `levels` — по одному объекту на 1–4: `{description, link}` для Базового/Среднего (ссылка на курс BILIM), `{description, testId}` для Продвинутого (привязка к `data/testlabTests.js`), `{description}` для Эксперта. `materials` — `{knowledgeBase, mandatoryPath}`, каждый `{title, url}`
+- `categoryOf(name)` — хелпер, вычисляет категорию навыка по имени; используют все экраны, которым нужно сгруппировать свой локальный список навыков по тем же категориям (`mySkillsData.js`, `careerPlan1.js`, `CareerPlanDetail.jsx`, `Titles.jsx`) — так название/категория никогда не расходятся с каталогом
+- `emptyLevels()`/`emptyMaterials()` — дефолт для нового навыка без контента
+
+Контент (описание, по уровням, материалы) реально заполнен только для одного демо-навыка (`BIM-технологии (Revit)`) — для остальных 45 пустой, показывается плейсхолдер «не заполнено администратором». Редактируется в админке: `/admin/skills/:id` (`SkillContentEditor.jsx`).
+
+Экраны вроде `Requirements.jsx` (матрица должность×уровень), `Titles.jsx` (требования по грейдам), `careerPlan1.js`/`CareerPlanDetail.jsx` (план развития), `Assessment/index.jsx`, `HR/AssessmentEntry.jsx`, `MyPlans/index.jsx`, `MyDashboard.jsx` — держат свои локальные данные (уровень/цель/статус/результат аттестации и т.п., это законно другая сущность), но названия навыков в них обязаны совпадать со строками из `INITIAL_SKILLS` — иначе `categoryOf()` вернёт `undefined` и запись потеряется при группировке.
+
+**Навигация «Мои навыки» → «Навыки»:** значок ⓘ у навыка в `MySkills.jsx` делает `navigate('/skills', { state: { openSkill: { name, category } } })` — `Skills/index.jsx` читает `location.state?.openSkill` при монтировании и сразу открывает `SkillDetail` нужного навыка (тот же паттерн, что и `{ state: { planId } }` из CareerMap → MyPlans, см. ниже).
+
+### Справочник тестов TestLab (`app/src/data/testlabTests.js`)
+
+`INITIAL_TESTLAB_TESTS` — статический список `{id, name}`, пока без интеграции с TestLab. Используется только на вкладке «Продвинутый» в `SkillContentEditor.jsx` (админ выбирает тест из списка через `<select>`, привязка сохраняется как `testId` в `skillsCatalog.js`) и в `SkillDetail.jsx` (показать сотруднику, каким тестом подтверждается уровень 3). Подробности механики подтверждения — [TASKS.md](TASKS.md#логика-подтверждения-навыков-по-уровням).
+
 ### Файлы данных
 
-`app/src/data/careerPlan1.js` — захардкоженный план обучения для перехода Foreman B → Foreman C. Категории: `'Обязательные курсы'`, `'Рекомендуемые курсы'`, `'Сертификаты для повышения'`. Статусы пунктов: `'done'`, `'in-progress'`, `'not-started'`.
+`app/src/data/careerPlan1.js` — захардкоженный план обучения для перехода Foreman B → Foreman C. Категории берутся из `skillsCatalog.js` через `categoryOf()` (см. выше), не свои. Статусы пунктов: `'done'`, `'in-progress'`, `'not-started'`.
 
 ### Страница Должности (`app/src/pages/Titles.jsx`)
 
