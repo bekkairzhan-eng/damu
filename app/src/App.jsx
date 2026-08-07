@@ -9,6 +9,7 @@ import Assessment from './pages/Assessment/index'
 import AdminLayout from './pages/Admin/AdminLayout'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import SkillsCatalog from './pages/Admin/SkillsCatalog'
+import SkillContentEditor from './pages/Admin/SkillContentEditor'
 import Positions from './pages/Admin/Positions'
 import CareerGraph from './pages/Admin/CareerGraph'
 import Requirements from './pages/Admin/Requirements'
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/admin" element={<RoleGuard role="admin"><AdminLayout /></RoleGuard>}>
           <Route index element={<AdminDashboard />} />
           <Route path="skills" element={<SkillsCatalog />} />
+          <Route path="skills/:id" element={<SkillContentEditor />} />
           <Route path="positions" element={<Positions />} />
           <Route path="career-graph" element={<CareerGraph />} />
           <Route path="requirements" element={<Requirements />} />

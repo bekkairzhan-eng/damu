@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useBreakpoint } from '../hooks/useBreakpoint'
+import { CATEGORIES, categoryOf } from '../data/skillsCatalog'
 
 const LEVELS = [
   { grade: '13', title: 'Foreman C' },
@@ -71,19 +72,21 @@ const GEN_REQS = [
   },
 ]
 
+// Категория каждого навыка выводится из общего каталога (skillsCatalog.js) —
+// здесь только требуемый уровень по грейдам (Foreman C/B/A, Site Manager).
 const SKILL_REQS = [
-  { cat: 'Строительные практики', name: 'Управление строительной площадкой', levels: ['Базовый', 'Средний', 'Продвинутый', 'Эксперт'], mandatory: true },
-  { cat: 'Строительные практики', name: 'Контроль качества строительства', levels: ['Базовый', 'Средний', 'Продвинутый', 'Продвинутый'], mandatory: true },
-  { cat: 'Строительные практики', name: 'Нормативная база строительства', levels: ['Базовый', 'Средний', 'Средний', 'Продвинутый'], mandatory: true },
-  { cat: 'Строительные практики', name: 'Охрана труда и ТБ', levels: ['Средний', 'Средний', 'Продвинутый', 'Эксперт'], mandatory: true },
-  { cat: 'Технологии', name: 'BIM-технологии (Revit)', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
-  { cat: 'Технологии', name: 'AutoCAD', levels: ['Базовый', 'Базовый', 'Средний', 'Продвинутый'] },
-  { cat: 'Технологии', name: 'MS Project', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
-  { cat: 'Технологии', name: 'Lean Construction', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
-  { cat: 'Управление и лидерство', name: 'Управление субподрядчиками', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
-  { cat: 'Управление и лидерство', name: 'Финансовый контроль проекта', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
-  { cat: 'Управление и лидерство', name: 'Управление командой', levels: ['Базовый', 'Базовый', 'Средний', 'Средний'] },
-  { cat: 'Языки', name: 'Казахский', levels: ['B1', 'B1', 'B2', 'B2'] },
+  { name: 'Управление строительной площадкой', levels: ['Базовый', 'Средний', 'Продвинутый', 'Эксперт'], mandatory: true },
+  { name: 'Контроль качества строительства', levels: ['Базовый', 'Средний', 'Продвинутый', 'Продвинутый'], mandatory: true },
+  { name: 'Нормативная база строительства', levels: ['Базовый', 'Средний', 'Средний', 'Продвинутый'], mandatory: true },
+  { name: 'Охрана труда и ТБ', levels: ['Средний', 'Средний', 'Продвинутый', 'Эксперт'], mandatory: true },
+  { name: 'BIM-технологии (Revit)', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
+  { name: 'AutoCAD', levels: ['Базовый', 'Базовый', 'Средний', 'Продвинутый'] },
+  { name: 'MS Project', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
+  { name: 'Lean Construction', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
+  { name: 'Управление субподрядчиками', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
+  { name: 'Финансовый контроль проекта', levels: [null, 'Базовый', 'Средний', 'Продвинутый'] },
+  { name: 'Управление командой', levels: ['Базовый', 'Базовый', 'Средний', 'Средний'] },
+  { name: 'Казахский', levels: ['B1', 'B1', 'B2', 'B2'] },
 ]
 
 const KB_BASE = 'https://kb.bi.group'
@@ -102,7 +105,7 @@ export default function Titles() {
   const skillsRef = useRef(null)
   const { isMobile } = useBreakpoint()
 
-  const cats = [...new Set(SKILL_REQS.map(s => s.cat))]
+  const cats = CATEGORIES.filter(cat => SKILL_REQS.some(s => categoryOf(s.name) === cat))
 
   const scrollTo = (ref) => {
     if (!ref.current) return
@@ -215,7 +218,7 @@ export default function Titles() {
           </div>
 
           {cats.map(cat => {
-            const catSkills = SKILL_REQS.filter(s => s.cat === cat)
+            const catSkills = SKILL_REQS.filter(s => categoryOf(s.name) === cat)
             return (
               <div key={cat}>
                 <div style={{ display: 'grid', gridTemplateColumns: '220px repeat(4, 1fr)', background: '#fafbfc', borderBottom: '1px solid #f0f2f8' }}>

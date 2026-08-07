@@ -41,7 +41,7 @@ const INITIAL_PENDING = [
   { id: 2, label: 'Lean Construction', level: 1, source: 'Активность на площадке' },
   { id: 3, label: 'Управление субподрядчиками', level: 3, source: 'Данные аттестации' },
   { id: 4, label: 'Контроль качества строительства', level: 2, source: 'Данные аттестации' },
-  { id: 5, label: 'Last Planner System', level: 1, source: 'Курс завершён в BI University' },
+  { id: 5, label: 'Последовательное планирование (LPS)', level: 1, source: 'Курс завершён в BI University' },
   { id: 6, label: 'Полевая отчётность и документация', level: 2, source: 'Активность в системе' },
   { id: 7, label: 'Проведение инструктажей по ОТиТБ', level: 3, source: 'Данные аттестации' },
   { id: 8, label: 'Управление материалами и поставками', level: 2, source: 'Активность на площадке' },

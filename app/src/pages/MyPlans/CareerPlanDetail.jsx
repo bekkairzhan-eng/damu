@@ -1,37 +1,28 @@
 import { useState } from 'react'
 import { skillGroups, LEARNING_PLAN } from '../../data/careerPlan1'
+import { CATEGORIES, categoryOf } from '../../data/skillsCatalog'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 
-const prevSkillGroups = [
-  {
-    name: 'Строительные практики', skills: [
-      { name: 'Управление строительной площадкой', achieved: 3, label: 'Средний → Продвинутый' },
-      { name: 'Контроль качества строительства', achieved: 3, label: 'Базовый → Продвинутый' },
-      { name: 'Нормативная база строительства РК', achieved: 3, label: 'Средний → Продвинутый' },
-      { name: 'Охрана труда и ТБ', achieved: 4, label: 'Продвинутый → Эксперт' },
-    ]
-  },
-  {
-    name: 'Технологии', skills: [
-      { name: 'AutoCAD', achieved: 2, label: 'Базовый → Средний' },
-      { name: 'MS Project', achieved: 1, label: 'Базовый', skipped: true },
-    ]
-  },
-  {
-    name: 'Управление и лидерство', skills: [
-      { name: 'Управление командой', achieved: 3, label: 'Средний → Продвинутый' },
-      { name: 'Коммуникация с заказчиком', achieved: 3, label: 'Средний → Продвинутый' },
-      { name: 'Управление конфликтами', achieved: 2, label: 'Базовый → Средний' },
-    ]
-  },
-  {
-    name: 'Языки', skills: [
-      { name: 'Казахский язык', achieved: 3, label: 'B1 → B2 (сертифицирован)', cert: true },
-      { name: 'Русский язык', achieved: 4, label: 'C1 (подтверждён)', cert: true },
-    ]
-  },
+// Названия и категории — из общего каталога (skillsCatalog.js), здесь только
+// достижения предыдущего цикла плана (achieved/label/cert).
+const PREV_SKILL_SEED = [
+  { name: 'Управление строительной площадкой', achieved: 3, label: 'Средний → Продвинутый' },
+  { name: 'Контроль качества строительства', achieved: 3, label: 'Базовый → Продвинутый' },
+  { name: 'Нормативная база строительства', achieved: 3, label: 'Средний → Продвинутый' },
+  { name: 'Охрана труда и ТБ', achieved: 4, label: 'Продвинутый → Эксперт' },
+  { name: 'AutoCAD', achieved: 2, label: 'Базовый → Средний' },
+  { name: 'MS Project', achieved: 1, label: 'Базовый', skipped: true },
+  { name: 'Управление командой', achieved: 3, label: 'Средний → Продвинутый' },
+  { name: 'Коммуникация с заказчиком', achieved: 3, label: 'Средний → Продвинутый' },
+  { name: 'Управление конфликтами', achieved: 2, label: 'Базовый → Средний' },
+  { name: 'Казахский', achieved: 3, label: 'B1 → B2 (сертифицирован)', cert: true },
+  { name: 'Русский', achieved: 4, label: 'C1 (подтверждён)', cert: true },
 ]
+
+const prevSkillGroups = CATEGORIES
+  .map(cat => ({ name: cat, skills: PREV_SKILL_SEED.filter(s => categoryOf(s.name) === cat) }))
+  .filter(g => g.skills.length > 0)
 
 const prevLearning = [
   { name: 'Корпоративный онбординг Foreman B', provider: 'BI University', date: 'Янв 2024', hours: 24, cert: false },

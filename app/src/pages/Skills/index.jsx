@@ -1,18 +1,10 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import SkillDetail from './SkillDetail'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useSkillFavorite } from '../../hooks/useSkillFavorite'
-
-const CATEGORIES = {
-  'Строительные практики': ['Управление строительной площадкой', 'Контроль качества строительства', 'Нормативная база строительства', 'Охрана труда и ТБ', 'Проектная документация'],
-  'BIM и технологии': ['BIM-технологии (Revit)', 'AutoCAD', 'MS Project', 'Navisworks', 'Autodesk BIM 360'],
-  'Lean Construction': ['Lean Construction', 'Последовательное планирование (LPS)', '5S в строительстве', 'Канбан для стройплощадки'],
-  'Управление проектами': ['Финансовый контроль проекта', 'Управление субподрядчиками', 'Управление строительными рисками', 'Тендерная документация'],
-  'Управление и лидерство': ['Управление командой', 'Коммуникация с заказчиком', 'Наставничество', 'Управление конфликтами', 'Принятие решений', 'Развитие сотрудников'],
-  'IT и цифровизация': ['Python', 'SQL и базы данных', 'Основы DevOps', 'Кибербезопасность: базовый уровень', 'Управление IT-проектами'],
-  'Языки (CEFR)': ['Казахский', 'Русский', 'Английский'],
-  'Корпоративные стандарты BI Group': ['Корпоративная культура BI Group', 'ESG в строительстве', 'Стандарты BI Development', 'Цифровизация стройплощадки'],
-}
+import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { CATEGORIES as CATEGORY_ORDER, INITIAL_SKILLS } from '../../data/skillsCatalog'
 
 const POPULARITY = {
   'BIM-технологии (Revit)': 312,
@@ -28,12 +20,22 @@ const POPULARITY = {
 const FILTERS = ['Все навыки']
 
 export default function Skills() {
+  const location = useLocation()
   const [openCats, setOpenCats] = useState({ 'BIM и технологии': true })
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('Все навыки')
-  const [selectedSkill, setSelectedSkill] = useState(null)
+  // Переход из "Мои навыки" (значок ⓘ) сразу открывает деталку конкретного
+  // навыка — так же, как переход из CareerMap сразу открывает нужный план.
+  const [selectedSkill, setSelectedSkill] = useState(() => location.state?.openSkill ?? null)
   const { isInPlan, isRemovable, addToPlan, removeFromPlan } = useSkillFavorite()
   const { isMobile } = useBreakpoint()
+  const [adminSkills] = useLocalStorage('admin:skills', INITIAL_SKILLS)
+
+  const CATEGORIES = {}
+  for (const cat of CATEGORY_ORDER) {
+    const names = adminSkills.filter(s => s.category === cat).map(s => s.name)
+    if (names.length) CATEGORIES[cat] = names
+  }
 
   if (selectedSkill) return <SkillDetail skill={selectedSkill} onBack={() => setSelectedSkill(null)} />
 

@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { INITIAL_SKILLS as CATALOG_SKILLS } from '../../data/skillsCatalog'
+
+const SKILL_NAMES = CATALOG_SKILLS.map(s => s.name)
 
 const POSITIONS = [
   'Foreman D', 'Foreman C', 'Foreman B', 'Foreman A',
@@ -18,20 +21,12 @@ const LEVEL_COLORS = {
   4: { bg: '#fdf4ff', color: '#9333ea' },
 }
 
-const INITIAL_SKILLS = [
-  'Чтение строительных чертежей', 'Контроль качества СМР', 'Работа с госдокументацией',
-  'Нормативно-техническая документация', 'Управление строительными рисками',
-  'BIM-технологии', 'Цифровые инструменты управления',
-  'Управление командой', 'Управление субподрядчиками', 'Работа с заказчиком',
-  'Бюджетирование проекта', 'Охрана труда (ОТиТБ)', 'Экологические требования',
-]
-
 // Default requirements: position × skill → level (per cluster)
 function makeDefaults() {
   const req = {}
   POSITIONS.forEach(pos => {
     req[pos] = {}
-    INITIAL_SKILLS.forEach(skill => {
+    SKILL_NAMES.forEach(skill => {
       // Simple heuristic for demo data
       const grade = ['Foreman D', 'Site Engineer D'].includes(pos) ? 1
         : ['Foreman C', 'Site Engineer C'].includes(pos) ? 1
@@ -104,7 +99,7 @@ export default function Requirements() {
       {/* Requirements table */}
       <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e8edf2', overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e8edf2', fontSize: 13, fontWeight: 600, color: '#0f1923', background: '#f8fafc' }}>
-          {position} · {cluster} — {INITIAL_SKILLS.length} навыков
+          {position} · {cluster} — {SKILL_NAMES.length} навыков
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -115,11 +110,11 @@ export default function Requirements() {
             </tr>
           </thead>
           <tbody>
-            {INITIAL_SKILLS.map((skill, i) => {
+            {SKILL_NAMES.map((skill, i) => {
               const level = posReqs[skill]?.[cluster] ?? 0
               const lc = LEVEL_COLORS[level]
               return (
-                <tr key={skill} style={{ borderBottom: i < INITIAL_SKILLS.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
+                <tr key={skill} style={{ borderBottom: i < SKILL_NAMES.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
                   <td style={{ padding: '13px 20px', fontSize: 14, color: '#0f1923' }}>{skill}</td>
                   <td style={{ padding: '13px 20px' }}>
                     <span style={{ padding: '4px 12px', borderRadius: 6, background: lc.bg, color: lc.color, fontSize: 12, fontWeight: 600 }}>{LEVEL_LABELS[level]}</span>

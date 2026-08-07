@@ -1,30 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
-
-const CATEGORIES = ['Строительные практики', 'Технологии', 'Управление и лидерство', 'Охрана труда', 'Языки', 'Прочее']
-const APPROVERS = ['РП', 'Тех. специалист', 'Самостоятельно']
-const LEVEL_NAMES = { 1: 'Базовый', 2: 'Средний', 3: 'Продвинутый', 4: 'Эксперт' }
-
-const INITIAL_SKILLS = [
-  { id: 1,  name: 'Чтение строительных чертежей',    category: 'Строительные практики', approver: 'РП' },
-  { id: 2,  name: 'Контроль качества СМР',            category: 'Строительные практики', approver: 'РП' },
-  { id: 3,  name: 'Работа с госдокументацией',        category: 'Строительные практики', approver: 'РП' },
-  { id: 4,  name: 'Нормативно-техническая документация', category: 'Строительные практики', approver: 'Тех. специалист' },
-  { id: 5,  name: 'Управление строительными рисками', category: 'Строительные практики', approver: 'РП' },
-  { id: 6,  name: 'BIM-технологии',                  category: 'Технологии',            approver: 'Тех. специалист' },
-  { id: 7,  name: 'Цифровые инструменты управления', category: 'Технологии',            approver: 'Тех. специалист' },
-  { id: 8,  name: 'MS Project / Primavera',           category: 'Технологии',            approver: 'Тех. специалист' },
-  { id: 9,  name: 'Управление командой',              category: 'Управление и лидерство', approver: 'РП' },
-  { id: 10, name: 'Управление субподрядчиками',       category: 'Управление и лидерство', approver: 'РП' },
-  { id: 11, name: 'Работа с заказчиком',              category: 'Управление и лидерство', approver: 'РП' },
-  { id: 12, name: 'Бюджетирование проекта',           category: 'Управление и лидерство', approver: 'РП' },
-  { id: 13, name: 'Управление претензиями',           category: 'Управление и лидерство', approver: 'РП' },
-  { id: 14, name: 'Охрана труда (ОТиТБ)',             category: 'Охрана труда',           approver: 'Тех. специалист' },
-  { id: 15, name: 'Экологические требования',         category: 'Охрана труда',           approver: 'Тех. специалист' },
-  { id: 16, name: 'Русский язык',                     category: 'Языки',                  approver: 'Самостоятельно' },
-  { id: 17, name: 'Казахский язык',                   category: 'Языки',                  approver: 'Самостоятельно' },
-  { id: 18, name: 'Английский язык',                  category: 'Языки',                  approver: 'Самостоятельно' },
-]
+import { CATEGORIES, APPROVERS, INITIAL_SKILLS, emptyLevels, emptyMaterials } from '../../data/skillsCatalog'
 
 const APPROVER_COLORS = {
   'РП':              { bg: '#eff6ff', color: '#2563eb' },
@@ -35,6 +12,7 @@ const APPROVER_COLORS = {
 const EMPTY_FORM = { name: '', category: CATEGORIES[0], approver: APPROVERS[0] }
 
 export default function SkillsCatalog() {
+  const navigate = useNavigate()
   const [skills, setSkills] = useLocalStorage('admin:skills', INITIAL_SKILLS)
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('Все')
@@ -54,7 +32,7 @@ export default function SkillsCatalog() {
   function save() {
     if (!form.name.trim()) return
     if (modal === 'add') {
-      setSkills(prev => [...prev, { id: Date.now(), ...form }])
+      setSkills(prev => [...prev, { id: Date.now(), ...form, description: '', levels: emptyLevels(), materials: emptyMaterials() }])
     } else {
       setSkills(prev => prev.map(s => s.id === modal.id ? { ...s, ...form } : s))
     }
@@ -116,6 +94,7 @@ export default function SkillsCatalog() {
                   </td>
                   <td style={{ padding: '14px 20px' }}>
                     <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => navigate(`/admin/skills/${skill.id}`)} style={{ padding: '5px 12px', border: '1px solid #e8edf2', borderRadius: 6, background: '#fff', fontSize: 13, cursor: 'pointer', color: '#0f1923' }}>Контент →</button>
                       <button onClick={() => openEdit(skill)} style={{ padding: '5px 12px', border: '1px solid #e8edf2', borderRadius: 6, background: '#fff', fontSize: 13, cursor: 'pointer', color: '#4361ee' }}>Изменить</button>
                       <button onClick={() => setDeleteConfirm(skill.id)} style={{ padding: '5px 12px', border: '1px solid #fee2e2', borderRadius: 6, background: '#fff', fontSize: 13, cursor: 'pointer', color: '#ef4444' }}>Удалить</button>
                     </div>

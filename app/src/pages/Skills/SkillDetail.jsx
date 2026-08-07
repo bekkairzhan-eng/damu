@@ -1,31 +1,16 @@
 import { useState } from 'react'
 import { useSkillFavorite } from '../../hooks/useSkillFavorite'
-
-const LEVELS_INFO = {
-  'Базовый': 'На этом уровне присутствует базовое понимание, но практический опыт ограничен. Основные концепции известны, но ещё не применяются самостоятельно.',
-  'Средний': 'На этом уровне специалист способен самостоятельно решать задачи умеренной сложности. Подтверждённый опыт практического применения навыка.',
-  'Продвинутый': 'На этом уровне специалист проектирует сложные решения с полной ответственностью. Опыт в реальных проектах и элементы технического лидерства.',
-  'Эксперт': 'На этом уровне специалист является признанным экспертом. Внедряет инновации, наставляет коллег, формирует стандарты в организации.',
-}
-
-const LEARNING_MATERIALS = [
-  { title: 'База знаний BI Group: нормативы строительства', type: 'База знаний', badge: 'От экспертов', icon: '📚' },
-  { title: 'Обязательный учебный путь для освоения навыка', type: 'Учебный путь', badge: 'От экспертов', icon: '🗺' },
-]
-
-const PRACTICAL_TASKS = [
-  { title: 'Провести аудит качества на строительном объекте', start: '05 Фев 2026', workload: '1–3 ч/нед' },
-  { title: 'Написать методическую инструкцию по охране труда', start: '13 Фев 2026', workload: '3–5 ч/нед' },
-  { title: 'Создать BIM-модель текущего объекта', start: '05 Май 2026', workload: '3–5 ч/нед' },
-  { title: 'Провести обучение для прорабов A по навыку', start: '13 Фев 2026', workload: '3–5 ч/нед' },
-]
+import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { INITIAL_SKILLS, LEVELS } from '../../data/skillsCatalog'
+import { INITIAL_TESTLAB_TESTS } from '../../data/testlabTests'
 
 const LEVEL_DOT_LABELS = ['', 'Начальный', 'Средний', 'Продвинутый', 'Эксперт']
 
 export default function SkillDetail({ skill, onBack }) {
   const [activeLevel, setActiveLevel] = useState('Базовый')
   const { setBaseCats, custom, setCustom, findInBase, isInPlan: checkInPlan, isRemovable: checkRemovable, addToPlan: addSkillToPlan, removeFromPlan } = useSkillFavorite()
-  const LEVELS = ['Базовый', 'Средний', 'Продвинутый', 'Эксперт']
+  const [adminSkills] = useLocalStorage('admin:skills', INITIAL_SKILLS)
+  const content = adminSkills.find(s => s.name === skill.name)
 
   // Уровень навыка сотрудник не выставляет сам — приходит из BILIM (1-2) / TestLab (3)
   // автоматически. Единственное ручное действие здесь — запрос подтверждения
@@ -128,13 +113,9 @@ export default function SkillDetail({ skill, onBack }) {
       <div style={{ padding: '24px 32px' }}>
         <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923', marginBottom: 10 }}>Описание навыка</div>
-          <p style={{ fontSize: 13, color: '#4a6275', lineHeight: 1.6, marginBottom: 10 }}>
-            {skill.name} охватывает способность проектировать и реализовывать решения с применением современных подходов и методологий. Этот навык связывает требования бизнеса с практической реализацией, обеспечивая надёжность и соответствие отраслевым стандартам.
+          <p style={{ fontSize: 13, color: content?.description ? '#4a6275' : '#9aafbd', lineHeight: 1.6, marginBottom: 0 }}>
+            {content?.description || 'Описание пока не заполнено администратором.'}
           </p>
-          <button style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer' }}>Показать больше</button>
-          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#7a8fa0' }}>
-            ✨ <button style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer' }}>Сгенерировать описание через ИИ</button>
-          </div>
         </div>
 
         <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
@@ -149,72 +130,81 @@ export default function SkillDetail({ skill, onBack }) {
             ))}
           </div>
 
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923', marginBottom: 8 }}>Что вы должны знать</div>
-          <p style={{ fontSize: 13, color: '#4a6275', lineHeight: 1.6, marginBottom: 10 }}>
-            {LEVELS_INFO[activeLevel] || 'Выберите конкретный уровень, чтобы увидеть требования.'}
-          </p>
-          <div style={{ fontSize: 12, color: '#7a8fa0', display: 'flex', alignItems: 'center', gap: 6 }}>
-            ✨ <button style={{ fontSize: 12, color: '#4361ee', background: 'none', border: 'none', cursor: 'pointer' }}>Сгенерировать описание уровня через ИИ</button>
-          </div>
-        </div>
-
-        <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923' }}>Учебные материалы</div>
-            <button style={btnPrimary}>+ Добавить</button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-            {LEARNING_MATERIALS.map(m => (
-              <div key={m.title} style={{ border: '1px solid #e8edf2', borderRadius: 10, padding: 14, display: 'flex', gap: 12 }}>
-                <span style={{ fontSize: 24 }}>{m.icon}</span>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#0f1923', marginBottom: 4 }}>{m.title}</div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <span style={{ fontSize: 10, background: '#f0f2f8', color: '#4a6275', padding: '1px 6px', borderRadius: 6 }}>РУС</span>
-                    <span style={{ fontSize: 10, background: '#f0f2f8', color: '#4a6275', padding: '1px 6px', borderRadius: 6 }}>{m.type}</span>
-                    <span style={{ fontSize: 10, background: '#d1fae5', color: '#059669', padding: '1px 6px', borderRadius: 6 }}>{m.badge}</span>
-                  </div>
+          {activeLevel === 'Все уровни' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {LEVELS.map(l => (
+                <div key={l}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923', marginBottom: 6 }}>{l}</div>
+                  <LevelBody level={l} content={content} />
                 </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ background: '#f8f9fc', borderRadius: 10, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, color: '#0f1923', marginBottom: 4 }}>Учебный путь, разработанный ИИ</div>
-            <div style={{ fontSize: 12, color: '#7a8fa0', marginBottom: 10 }}>Получите набор рекомендованных курсов и программ, подобранных ИИ-помощником</div>
-            <button style={{ padding: '6px 14px', borderRadius: 7, border: 'none', background: '#0f1923', color: '#fff', fontSize: 12, cursor: 'pointer' }}>Создать учебный путь через ИИ</button>
-          </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#0f1923', marginBottom: 8 }}>Что вы должны знать</div>
+              <LevelBody level={activeLevel} content={content} />
+            </>
+          )}
         </div>
 
         <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923', marginBottom: 4 }}>Практические задания</div>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-            <button style={btnOutline}>+ Добавить личное задание</button>
-            <button style={{ ...btnOutline, display: 'flex', alignItems: 'center', gap: 6 }}>✨ Сгенерировать задания через ИИ</button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-            {PRACTICAL_TASKS.map(t => (
-              <div key={t.title} style={{ border: '1px solid #e8edf2', borderRadius: 10, padding: 14 }}>
-                <div style={{ fontSize: 11, color: '#9aafbd', marginBottom: 4 }}>Старт: {t.start}</div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: '#0f1923', marginBottom: 8, lineHeight: 1.4 }}>{t.title}</div>
-                <div style={{ fontSize: 11, color: '#7a8fa0', marginBottom: 10 }}>Нагрузка: {t.workload}</div>
-                <button style={btnOutline}>Открыть</button>
-              </div>
-            ))}
-          </div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923', marginBottom: 14 }}>Учебные материалы</div>
+          {materialsList(content).length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {materialsList(content).map(m => (
+                <a key={m.title} href={m.url} target="_blank" rel="noreferrer" style={{ border: '1px solid #e8edf2', borderRadius: 10, padding: 14, display: 'flex', gap: 12, textDecoration: 'none' }}>
+                  <span style={{ fontSize: 24 }}>{m.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: '#0f1923' }}>{m.title}</div>
+                    <div style={{ fontSize: 12, color: '#4361ee', marginTop: 2 }}>Открыть →</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: '#9aafbd', textAlign: 'center', padding: 20 }}>Материалы пока не добавлены администратором.</div>
+          )}
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#0f1923', marginBottom: 10 }}>Вопросы для самопроверки</div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={btnOutline}>+ Добавить вопрос</button>
-            <button style={{ ...btnOutline, display: 'flex', alignItems: 'center', gap: 6 }}>✨ Сгенерировать вопросы через ИИ</button>
-          </div>
-          <div style={{ marginTop: 12, fontSize: 13, color: '#9aafbd', textAlign: 'center', padding: 20 }}>Контент от экспертов пока отсутствует</div>
-        </div>
+        {/* Практические задания и вопросы для самопроверки — скрыто, пока не нужно (см. обсуждение 07.08.2026) */}
       </div>
     </div>
   )
+}
+
+function LevelBody({ level, content }) {
+  const levelData = content?.levels?.[level]
+  const test = level === 'Продвинутый' ? INITIAL_TESTLAB_TESTS.find(t => t.id === levelData?.testId) : null
+
+  return (
+    <>
+      <p style={{ fontSize: 13, color: levelData?.description ? '#4a6275' : '#9aafbd', lineHeight: 1.6, marginBottom: 10 }}>
+        {levelData?.description || 'Описание уровня пока не заполнено администратором.'}
+      </p>
+      {level !== 'Эксперт' && level !== 'Продвинутый' && levelData?.link && (
+        <a href={levelData.link} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#4361ee', fontWeight: 600, textDecoration: 'none' }}>
+          Пройти курс →
+        </a>
+      )}
+      {level === 'Продвинутый' && (
+        test
+          ? <div style={{ fontSize: 12, color: '#9aafbd' }}>Подтверждается тестом TestLab «{test.name}» — засчитывается при ближайшем ранжировании (раз в полгода).</div>
+          : <div style={{ fontSize: 12, color: '#9aafbd' }}>Тест TestLab для этого уровня пока не привязан администратором.</div>
+      )}
+      {level === 'Эксперт' && (
+        <div style={{ fontSize: 12, color: '#9aafbd' }}>Подтверждается вручную — запросите эксперта, когда будет достигнут уровень 3.</div>
+      )}
+    </>
+  )
+}
+
+function materialsList(content) {
+  const m = content?.materials
+  if (!m) return []
+  return [
+    m.knowledgeBase?.url ? { title: m.knowledgeBase.title || 'База знаний', url: m.knowledgeBase.url, icon: '📚' } : null,
+    m.mandatoryPath?.url ? { title: m.mandatoryPath.title || 'Обязательный учебный путь', url: m.mandatoryPath.url, icon: '🗺' } : null,
+  ].filter(Boolean)
 }
 
 const btnPrimary = { padding: '7px 16px', borderRadius: 7, border: 'none', background: '#4361ee', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }

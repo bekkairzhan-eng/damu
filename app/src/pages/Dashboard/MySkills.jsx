@@ -1,10 +1,16 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSkillFavorite } from '../../hooks/useSkillFavorite'
 
 const FILTERS = ['Все', 'Избранные', 'Подтверждённые', 'Целевые']
 
 export default function MySkills() {
+  const navigate = useNavigate()
   const { baseCats: cats, setBaseCats: setCats, custom, setCustom, toggleFavorite, isRemovable, removeFromPlan } = useSkillFavorite()
+
+  function openInCatalog(name, category) {
+    navigate('/skills', { state: { openSkill: { name, category } } })
+  }
   const [customOpen, setCustomOpen] = useState({})
   const [activeFilter, setActiveFilter] = useState('Все')
   const [showLegend, setShowLegend] = useState(true)
@@ -106,6 +112,7 @@ export default function MySkills() {
                     isLanguage={cat.isLanguage}
                     onStar={() => toggleFavorite(s.name, cat.name)}
                     onRequestExpert={() => requestExpert(cat.name, s.name)}
+                    onInfo={() => openInCatalog(s.name, cat.name)}
                   />
                 ))}
               </div>
@@ -135,6 +142,7 @@ export default function MySkills() {
                     onStar={() => toggleFavorite(s.name, catName)}
                     onRequestExpert={() => requestExpertCustom(s.name)}
                     onExclude={isRemovable(s.name) ? () => removeFromPlan(s.name) : undefined}
+                    onInfo={() => openInCatalog(s.name, catName)}
                   />
                 ))}
               </div>
@@ -156,7 +164,7 @@ export default function MySkills() {
 
 const LEVEL_LABELS = ['', 'Начальный', 'Средний', 'Продвинутый', 'Эксперт']
 
-function SkillRow({ skill, isLanguage, onStar, onRequestExpert, onExclude }) {
+function SkillRow({ skill, isLanguage, onStar, onRequestExpert, onExclude, onInfo }) {
   const canRequestExpert = skill.level === 3 && !skill.expertPending
 
   return (
@@ -203,7 +211,14 @@ function SkillRow({ skill, isLanguage, onStar, onRequestExpert, onExclude }) {
           close
         </span>
       ) : (
-        <span className="material-symbols-outlined" style={{ color: '#cdd5e0', fontSize: 16, cursor: 'pointer' }}>info</span>
+        <span
+          onClick={onInfo}
+          title="Открыть навык в каталоге"
+          className="material-symbols-outlined"
+          style={{ color: '#cdd5e0', fontSize: 16, cursor: 'pointer' }}
+        >
+          info
+        </span>
       )}
     </div>
   )

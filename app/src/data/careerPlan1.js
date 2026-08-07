@@ -1,47 +1,31 @@
-export const skillGroups = [
-  {
-    name: 'Строительные практики', skills: [
-      { name: 'Управление строительной площадкой', level: 3, target: 4, status: 'gap' },
-      { name: 'Контроль качества строительства', level: 3, target: 4, status: 'gap' },
-      { name: 'Нормативная база строительства', level: 3, target: 4, status: 'gap' },
-    ]
-  },
-  {
-    name: 'Технологии', skills: [
-      { name: 'BIM-технологии (Revit)', level: 2, target: 3, status: 'gap' },
-      { name: 'AutoCAD', level: 2, target: 3, status: 'gap' },
-      { name: 'MS Project', level: 1, target: 2, status: 'gap' },
-      { name: 'Lean Construction', level: 2, target: 3, status: 'gap' },
-    ]
-  },
-  {
-    name: 'Управление и лидерство', skills: [
-      { name: 'Управление командой', level: 3, target: 3, status: 'developed', starred: true },
-      { name: 'Управление субподрядчиками', level: 2, target: 3, status: 'gap' },
-      { name: 'Финансовый контроль проекта', level: 2, target: 3, status: 'gap' },
-      { name: 'Коммуникация с заказчиком', level: 3, target: 3, status: 'developed', starred: true },
-    ]
-  },
-  {
-    name: 'Охрана труда', skills: [
-      { name: 'Охрана труда и ТБ', level: 4, target: 4, status: 'developed' },
-    ]
-  },
-  {
-    name: 'Языки', skills: [
-      { name: 'Казахский', level: 3, target: 3, status: 'developed', badge: 'C1' },
-    ]
-  },
-  {
-    name: 'Прочее', skills: [
-      { name: 'Адаптивность', level: 2, target: 3, status: 'gap' },
-      { name: 'Развитие сотрудников', level: 1, target: 2, status: 'gap' },
-      { name: 'Командная работа', level: 2, target: 2, status: 'developed', starred: true },
-      { name: 'Принятие решений', level: 2, target: 3, status: 'gap' },
-      { name: 'Управление конфликтами', level: 2, target: 3, status: 'gap' },
-    ]
-  },
+import { CATEGORIES, categoryOf } from './skillsCatalog'
+
+// Названия и категории — из общего каталога (skillsCatalog.js), здесь только
+// состояние плана конкретного сотрудника (level/target/status).
+const SKILL_SEED = [
+  { name: 'Управление строительной площадкой', level: 3, target: 4, status: 'gap' },
+  { name: 'Контроль качества строительства', level: 3, target: 4, status: 'gap' },
+  { name: 'Нормативная база строительства', level: 3, target: 4, status: 'gap' },
+  { name: 'Охрана труда и ТБ', level: 4, target: 4, status: 'developed' },
+  { name: 'BIM-технологии (Revit)', level: 2, target: 3, status: 'gap' },
+  { name: 'AutoCAD', level: 2, target: 3, status: 'gap' },
+  { name: 'MS Project', level: 1, target: 2, status: 'gap' },
+  { name: 'Lean Construction', level: 2, target: 3, status: 'gap' },
+  { name: 'Управление командой', level: 3, target: 3, status: 'developed', starred: true },
+  { name: 'Управление субподрядчиками', level: 2, target: 3, status: 'gap' },
+  { name: 'Финансовый контроль проекта', level: 2, target: 3, status: 'gap' },
+  { name: 'Коммуникация с заказчиком', level: 3, target: 3, status: 'developed', starred: true },
+  { name: 'Адаптивность', level: 2, target: 3, status: 'gap' },
+  { name: 'Развитие сотрудников', level: 1, target: 2, status: 'gap' },
+  { name: 'Командная работа', level: 2, target: 2, status: 'developed', starred: true },
+  { name: 'Принятие решений', level: 2, target: 3, status: 'gap' },
+  { name: 'Управление конфликтами', level: 2, target: 3, status: 'gap' },
+  { name: 'Казахский', level: 3, target: 3, status: 'developed', badge: 'C1' },
 ]
+
+export const skillGroups = CATEGORIES
+  .map(cat => ({ name: cat, skills: SKILL_SEED.filter(s => categoryOf(s.name) === cat) }))
+  .filter(g => g.skills.length > 0)
 
 export const LEARNING_PLAN = [
   {

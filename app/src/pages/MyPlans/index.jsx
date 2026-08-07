@@ -13,9 +13,9 @@ const MOCK_ASSESSMENT_HISTORY = [
     hrName: 'Айгерим Сейткалиева',
     hrComment: 'В целом хороший прогресс. Рекомендую сосредоточиться на технических навыках и управлении субподрядчиками.',
     skills: [
-      { name: 'BIM-технологии',                      passed: false, comment: 'Необходимо пройти курс Revit Advanced.' },
+      { name: 'BIM-технологии (Revit)',               passed: false, comment: 'Необходимо пройти курс Revit Advanced.' },
       { name: 'Управление субподрядчиками',           passed: false, comment: 'Нужно больше практики в переговорах.' },
-      { name: 'Нормативно-техническая документация',  passed: false, comment: 'Обновить знания по СНиП 2025.' },
+      { name: 'Нормативная база строительства',       passed: false, comment: 'Обновить знания по СНиП 2025.' },
     ],
   },
 ]
