@@ -46,6 +46,8 @@ npm run preview  # Превью продакшен-сборки
 | `careermap:tour-seen` | CareerMap | Завершён ли онбординг-тур |
 | `theme:dark` | ProfileContext | Переключатель тёмной темы |
 | `admin:skills` | SkillsCatalog, SkillContentEditor, Skills, SkillDetail, MySkills (через `mySkillsData.js`) | Каталог навыков — единственный источник данных о навыках, см. «Каталог навыков» ниже |
+| `admin:positions` | Positions, PositionContentEditor, Titles | Каталог должностей — грейды, «Общие требования», ссылки на Базу знаний, см. «Каталог должностей» ниже |
+| `admin:req-categories` | Positions, PositionContentEditor, Titles | Общий справочник категорий «Общих требований» |
 | `myskills:base` / `myskills:custom` | `useSkillFavorite` (MySkills, Skills, SkillDetail) | Навыки в профиле сотрудника: карьерный трек / добавленные самостоятельно |
 
 Таблица не исчерпывающая — есть и другие ключи (`admin:requirements`, `hr:*`, `assessment:*`, `dashboard:*`, `auth:roles`), см. по коду через `useLocalStorage`.
@@ -89,6 +91,19 @@ npm run preview  # Превью продакшен-сборки
 ### Справочник тестов TestLab (`app/src/data/testlabTests.js`)
 
 `INITIAL_TESTLAB_TESTS` — статический список `{id, name}`, пока без интеграции с TestLab. Используется только на вкладке «Продвинутый» в `SkillContentEditor.jsx` (админ выбирает тест из списка через `<select>`, привязка сохраняется как `testId` в `skillsCatalog.js`) и в `SkillDetail.jsx` (показать сотруднику, каким тестом подтверждается уровень 3). Подробности механики подтверждения — [TASKS.md](TASKS.md#логика-подтверждения-навыков-по-уровням).
+
+### Каталог должностей (`app/src/data/positionsCatalog.js`)
+
+Единый источник по должностям (объединено 12.08.2026 — раньше `Titles.jsx` держал три своих хардкода: `LEVELS` с грейдами, `GEN_REQS` с текстами «Общих требований» и `KB_LINKS` со ссылками, а в `Admin/Positions.jsx` был отдельный список, и грейды по одной должности расходились между экранами). Экспортирует:
+- `INITIAL_POSITIONS` — 11 должностей: `{id, name, grade, track, employeeType, isDamuEnabled, description, kbUrl, generalReqs}`. `generalReqs` — `{categoryId: текст}`
+- `INITIAL_REQ_CATEGORIES` — категории «Общих требований», **общий справочник для всех должностей** (6 штук). Добавление категории делает её обязательной у каждой должности
+- `TRACKS`, `missingReqs(position, categories)`, `isComplete(position, categories)` — последние два считают незаполненные категории (пустая строка = не заполнено)
+
+**Грейд — только чтение**, источник правды HRMS (Kafka). Админ его не редактирует: поля нет в форме, в таблице выводится с подсказкой. Набор: Foreman D=13 → C=14 → B=15 → A=16 → Site Manager=17 → Deputy PM=18 → PM=19.
+
+**Обязательность заполнения** («без шахматки»): `PositionContentEditor.jsx` не даёт сохранить должность, пока пустая хотя бы одна категория (кнопка «Сохранить» задизейблена, при попытке — список незаполненных). `Positions.jsx` показывает счётчик «5/6» по каждой должности и баннер со списком незаполненных. На `/titles` пустая ячейка выводится как «Не заполнено», а не молча пустой.
+
+Тексты заполнены только для Foreman C/B/A и Site Manager — те 4 должности, что показываются на `/titles` (`SHOWN_POSITIONS`). Остальные 7 в админке видны как «0/6».
 
 ### Файлы данных
 
