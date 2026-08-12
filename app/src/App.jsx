@@ -11,6 +11,7 @@ import AdminDashboard from './pages/Admin/AdminDashboard'
 import SkillsCatalog from './pages/Admin/SkillsCatalog'
 import SkillContentEditor from './pages/Admin/SkillContentEditor'
 import Positions from './pages/Admin/Positions'
+import PositionContentEditor from './pages/Admin/PositionContentEditor'
 import CareerGraph from './pages/Admin/CareerGraph'
 import Requirements from './pages/Admin/Requirements'
 import RatingWeights from './pages/Admin/RatingWeights'
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="skills" element={<SkillsCatalog />} />
           <Route path="skills/:id" element={<SkillContentEditor />} />
           <Route path="positions" element={<Positions />} />
+          <Route path="positions/:id" element={<PositionContentEditor />} />
           <Route path="career-graph" element={<CareerGraph />} />
           <Route path="requirements" element={<Requirements />} />
           <Route path="rating" element={<RatingWeights />} />
